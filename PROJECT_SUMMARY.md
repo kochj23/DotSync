@@ -1,6 +1,6 @@
 # Dot Sync - Project Summary
 **Created:** December 11, 2025
-**Author:** Jordan Koch with Claude Code
+**Author:** Jordan Koch
 
 ---
 

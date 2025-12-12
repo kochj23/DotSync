@@ -139,20 +139,19 @@ class S3Provider: BaseCloudProvider, CloudStorageProtocol {
     }
 
     private func addAWSSignature(to request: inout URLRequest, payload: Data) throws {
-        // Simplified AWS Signature V4 (production would use AWS SDK)
-        // For now, placeholder - full implementation would require AWS SDK or manual signing
-
         guard let accessKey = credentials?.accessKeyId,
               let secretKey = credentials?.secretAccessKey else {
             throw CloudStorageError.invalidCredentials
         }
 
-        let timestamp = ISO8601DateFormatter().string(from: Date())
-        request.setValue(timestamp, forHTTPHeaderField: "X-Amz-Date")
-        request.setValue(accessKey, forHTTPHeaderField: "X-Amz-Access-Key")
-
-        // Note: Full AWS Signature V4 signing would go here
-        // This is a placeholder for the architecture
+        // Use AWSHelper for full Signature V4 signing
+        let region = config.region ?? "us-east-1"
+        AWSHelper.signRequest(&request,
+                            accessKey: accessKey,
+                            secretKey: secretKey,
+                            region: region,
+                            service: "s3",
+                            payload: payload)
     }
 
     private func parseS3ListResponse(_ data: Data) throws -> [RemoteFile] {

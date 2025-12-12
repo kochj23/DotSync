@@ -261,11 +261,6 @@ Dot Sync/
 - `.azure/config` - Azure CLI
 - `.config/gcloud/` - Google Cloud SDK
 
-**Claude Code (High):**
-- `.claude/CLAUDE.md` - Claude instructions
-- `.claude/settings.json` - Claude settings
-- `.claude/preferences.md` - Claude preferences
-
 **Development Tools (Medium):**
 - `.docker/config.json` - Docker (auth removed)
 - `.npmrc` - npm configuration

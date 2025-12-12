@@ -31,14 +31,11 @@ class SyncEngine: ObservableObject {
         case .awsS3, .s3Compatible:
             cloudProvider = S3Provider(config: provider, credentials: credentials)
         case .azureBlob:
-            // cloudProvider = AzureProvider(config: provider, credentials: credentials)
-            cloudProvider = nil // Placeholder
+            cloudProvider = AzureBlobProvider(config: provider, credentials: credentials)
         case .googleCloud:
-            // cloudProvider = GCPProvider(config: provider, credentials: credentials)
-            cloudProvider = nil // Placeholder
+            cloudProvider = GCPProvider(config: provider, credentials: credentials)
         case .iCloud:
-            // cloudProvider = iCloudProvider(config: provider, credentials: nil)
-            cloudProvider = nil // Placeholder
+            cloudProvider = iCloudProvider(config: provider, credentials: nil)
         }
     }
 

@@ -10,16 +10,31 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var discoveryService = FileDiscoveryService.shared
     @StateObject private var syncEngine = SyncEngine.shared
+    @StateObject private var profileManager = ProfileManager.shared
 
     @State private var selectedCategory: ConfigCategory? = nil
     @State private var selectedFiles: Set<UUID> = []
-    @State private var showingSetup = false
+    @State private var showingPreferences = false
+    @State private var showingPreview = false
     @State private var showingConflicts = false
+    @State private var dryRunEnabled = false
 
     var body: some View {
         NavigationSplitView {
             // Left Sidebar - Categories
             List(selection: $selectedCategory) {
+                Section("Profiles") {
+                    Picker("Active Profile", selection: $profileManager.activeProfile) {
+                        ForEach(profileManager.profiles) { profile in
+                            Text(profile.name).tag(profile)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: profileManager.activeProfile) { _ in
+                        profileManager.saveActiveProfile()
+                    }
+                }
+
                 Section("Categories") {
                     ForEach(ConfigCategory.allCases, id: \.self) { category in
                         CategoryRow(category: category, fileCount: fileCount(for: category))
@@ -42,16 +57,27 @@ struct ContentView: View {
                     }
                     .disabled(discoveryService.isScanning)
                 }
+
+                ToolbarItem(placement: .automatic) {
+                    Button(action: { showingPreferences = true }) {
+                        Label("Preferences", systemImage: "gear")
+                    }
+                }
             }
         } detail: {
             // Right Panel - File List and Details
             if discoveryService.isScanning {
                 ProgressView("Scanning configuration files...")
             } else if let category = selectedCategory {
-                FileListView(files: filteredFiles, selectedFiles: $selectedFiles)
+                FileListView(
+                    files: filteredFiles,
+                    selectedFiles: $selectedFiles,
+                    dryRunEnabled: $dryRunEnabled,
+                    onSync: performSync,
+                    onPreview: showPreview
+                )
             } else {
-                Text("Select a category to view config files")
-                    .foregroundColor(.secondary)
+                EmptyStateView()
             }
         }
         .onAppear {
@@ -59,8 +85,11 @@ struct ContentView: View {
                 await discoveryService.scanHomeDirectory()
             }
         }
-        .sheet(isPresented: $showingSetup) {
-            SetupView()
+        .sheet(isPresented: $showingPreferences) {
+            PreferencesView()
+        }
+        .sheet(isPresented: $showingPreview) {
+            PreviewOperationsView(operations: syncEngine.previewOperations)
         }
         .sheet(isPresented: $showingConflicts) {
             ConflictResolutionView()
@@ -68,18 +97,79 @@ struct ContentView: View {
     }
 
     private var filteredFiles: [ConfigFile] {
-        if let category = selectedCategory {
-            return discoveryService.files(for: category)
+        let allFiles = if let category = selectedCategory {
+            discoveryService.files(for: category)
+        } else {
+            discoveryService.discoveredFiles
         }
-        return discoveryService.discoveredFiles
+
+        // Filter by active profile
+        return profileManager.filteredFiles(from: allFiles)
     }
 
     private func fileCount(for category: ConfigCategory) -> Int {
-        discoveryService.files(for: category).count
+        let files = discoveryService.files(for: category)
+        return profileManager.filteredFiles(from: files).count
     }
 
     private func priorityCount(for priority: SyncPriority) -> Int {
-        discoveryService.files(for: priority).count
+        let files = discoveryService.files(for: priority)
+        return profileManager.filteredFiles(from: files).count
+    }
+
+    private func performSync() {
+        Task {
+            let filesToSync = selectedFiles.compactMap { id in
+                discoveryService.discoveredFiles.first { $0.id == id }
+            }
+
+            do {
+                try await syncEngine.sync(files: filesToSync, direction: .upload, dryRun: dryRunEnabled)
+
+                if dryRunEnabled {
+                    showingPreview = true
+                }
+            } catch {
+                print("[ContentView] Sync error: \(error)")
+            }
+        }
+    }
+
+    private func showPreview() {
+        Task {
+            let filesToSync = selectedFiles.compactMap { id in
+                discoveryService.discoveredFiles.first { $0.id == id }
+            }
+
+            do {
+                _ = try await syncEngine.previewSync(files: filesToSync)
+                showingPreview = true
+            } catch {
+                print("[ContentView] Preview error: \(error)")
+            }
+        }
+    }
+}
+
+// MARK: - Empty State
+
+struct EmptyStateView: View {
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "doc.text.magnifyingglass")
+                .font(.system(size: 64))
+                .foregroundColor(.secondary)
+
+            Text("Select a category to view config files")
+                .font(.title3)
+                .foregroundColor(.secondary)
+
+            Text("Dot Sync has scanned your home directory for configuration files")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
     }
 }
 
@@ -140,6 +230,9 @@ struct PriorityRow: View {
 struct FileListView: View {
     let files: [ConfigFile]
     @Binding var selectedFiles: Set<UUID>
+    @Binding var dryRunEnabled: Bool
+    let onSync: () -> Void
+    let onPreview: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -160,8 +253,7 @@ struct FileListView: View {
             Divider()
 
             // File list
-            List(files, selection: $selectedFiles) {
- file in
+            List(files, selection: $selectedFiles) { file in
                 FileRow(file: file)
                     .tag(file.id)
             }
@@ -170,15 +262,25 @@ struct FileListView: View {
 
             // Sync toolbar
             HStack {
-                Button(action: { /* Sync */ }) {
-                    Label("Sync Selected", systemImage: "arrow.triangle.2.circlepath")
-                }
-                .disabled(selectedFiles.isEmpty)
+                Toggle("Dry Run (Preview Only)", isOn: $dryRunEnabled)
+                    .help("Preview sync operations without executing them")
 
                 Spacer()
 
-                Button(action: { /* Setup */ }) {
-                    Label("Cloud Setup", systemImage: "cloud.fill")
+                if dryRunEnabled {
+                    Button(action: onPreview) {
+                        Label("Preview Sync", systemImage: "eye")
+                    }
+                    .disabled(selectedFiles.isEmpty)
+                } else {
+                    Button(action: onSync) {
+                        Label("Sync Selected", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    .disabled(selectedFiles.isEmpty)
+                }
+
+                Button(action: { /* Open preferences */ }) {
+                    Label("Settings", systemImage: "gear")
                 }
             }
             .padding()
@@ -244,30 +346,109 @@ struct FileRow: View {
     }
 }
 
-// MARK: - Setup View
+// MARK: - Preview Operations View
 
-struct SetupView: View {
+struct PreviewOperationsView: View {
+    let operations: [SyncOperation]
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack {
-            Text("Cloud Provider Setup")
-                .font(.title)
-            Text("Configure your cloud storage provider")
-                .foregroundColor(.secondary)
+        VStack(spacing: 20) {
+            // Header
+            HStack {
+                Image(systemName: "eye")
+                    .font(.largeTitle)
+                    .foregroundColor(.blue)
 
-            Spacer()
+                VStack(alignment: .leading) {
+                    Text("Sync Preview (Dry Run)")
+                        .font(.title)
+                    Text("These operations would be performed")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
 
-            Text("Setup coming soon...")
+                Spacer()
+            }
 
-            Spacer()
+            Divider()
 
-            Button("Close") {
-                dismiss()
+            // Operations list
+            if operations.isEmpty {
+                Text("No sync operations needed - all files are up to date")
+                    .foregroundColor(.secondary)
+            } else {
+                List(operations) { operation in
+                    HStack {
+                        Image(systemName: operation.direction.icon)
+                            .foregroundColor(directionColor(operation.direction))
+
+                        VStack(alignment: .leading) {
+                            Text(operation.file.filename)
+                                .font(.system(.body, design: .monospaced))
+                            Text(operation.direction.rawValue)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+
+                        Spacer()
+
+                        Text(operation.file.sizeFormatted)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
+            Divider()
+
+            // Summary
+            HStack {
+                Text("Total: \(operations.count) operations")
+                    .font(.headline)
+
+                Spacer()
+
+                Text("\(uploadCount) uploads, \(downloadCount) downloads")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            // Actions
+            HStack {
+                Button("Cancel") {
+                    dismiss()
+                }
+                .keyboardShortcut(.cancelAction)
+
+                Spacer()
+
+                Button("Execute Sync") {
+                    // Would trigger actual sync
+                    dismiss()
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(operations.isEmpty)
             }
         }
         .padding()
-        .frame(width: 500, height: 400)
+        .frame(width: 700, height: 500)
+    }
+
+    private var uploadCount: Int {
+        operations.filter { $0.direction == .upload }.count
+    }
+
+    private var downloadCount: Int {
+        operations.filter { $0.direction == .download }.count
+    }
+
+    private func directionColor(_ direction: SyncDirection) -> Color {
+        switch direction {
+        case .upload: return .blue
+        case .download: return .orange
+        case .skip: return .gray
+        }
     }
 }
 

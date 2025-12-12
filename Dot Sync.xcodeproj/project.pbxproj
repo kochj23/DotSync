@@ -1,0 +1,397 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		03FC6F1F48B7CC091EDC1B24 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */; };
+		0FAA6A82FE269F23D3E10201 /* S3Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E1D0DF1A2025FA215ED733 /* S3Provider.swift */; };
+		146B4B628E938BB1D72EED3E /* SyncOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */; };
+		25C817A15F3CD570E10D773E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */; };
+		37E96C9671266F8E560133C8 /* ConfigFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE4E6D5395ACB8F8E9990811 /* ConfigFile.swift */; };
+		389211FE3E85BB0D26FA4E7B /* CloudStorageProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE52C7804FB6056219A5475F /* CloudStorageProtocol.swift */; };
+		40CE77F2818A95F6FFA55BDE /* FileDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */; };
+		434F935EA88C411AD023E7C2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233046D7912C359920BEEE9E /* ContentView.swift */; };
+		BC51E3EFCED70A395C3920DE /* CloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBAB5EF97069066D20EFD /* CloudProvider.swift */; };
+		E280319E220B946672AD32A9 /* SecurityScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600F98EC1575548082806730 /* SecurityScanner.swift */; };
+		F1C5BC05209C1DB178AE1B9D /* DotSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		233046D7912C359920BEEE9E /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = "Dot Sync/Views/ContentView.swift"; sourceTree = "<group>"; };
+		5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileDiscoveryService.swift; path = "Dot Sync/Services/FileDiscoveryService.swift"; sourceTree = "<group>"; };
+		600F98EC1575548082806730 /* SecurityScanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SecurityScanner.swift; path = "Dot Sync/Services/SecurityScanner.swift"; sourceTree = "<group>"; };
+		888F9F592E34263FFF24DA06 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Dot Sync/Info.plist"; sourceTree = "<group>"; };
+		A2A37A693E8B2FB7977CB62F /* Dot Sync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dot Sync.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncEngine.swift; path = "Dot Sync/Services/SyncEngine.swift"; sourceTree = "<group>"; };
+		AE52C7804FB6056219A5475F /* CloudStorageProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CloudStorageProtocol.swift; path = "Dot Sync/Services/CloudStorageProtocol.swift"; sourceTree = "<group>"; };
+		C5E1D0DF1A2025FA215ED733 /* S3Provider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = S3Provider.swift; path = "Dot Sync/Services/S3Provider.swift"; sourceTree = "<group>"; };
+		EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DotSyncApp.swift; path = "Dot Sync/DotSyncApp.swift"; sourceTree = "<group>"; };
+		F7EBBAB5EF97069066D20EFD /* CloudProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CloudProvider.swift; path = "Dot Sync/Models/CloudProvider.swift"; sourceTree = "<group>"; };
+		FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncOperation.swift; path = "Dot Sync/Models/SyncOperation.swift"; sourceTree = "<group>"; };
+		FE4E6D5395ACB8F8E9990811 /* ConfigFile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConfigFile.swift; path = "Dot Sync/Models/ConfigFile.swift"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C8D3F6486D108671652A8ABF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				25C817A15F3CD570E10D773E /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4E9A7D94E53AD730971CA2C7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				50ABD500CD73BE4CC9467B81 /* OS X */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		50ABD500CD73BE4CC9467B81 /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
+		68B926ED53872375D348C7A0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A2A37A693E8B2FB7977CB62F /* Dot Sync.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		73D538D924DE092ED1E347A3 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Views;
+			sourceTree = "<group>";
+		};
+		97541DA7D1D02E5162CA9000 /* Dot Sync */ = {
+			isa = PBXGroup;
+			children = (
+				F8591A21E94B236E1C5DF518 /* Models */,
+				73D538D924DE092ED1E347A3 /* Views */,
+				CB09819D1A13BD30B87ADC88 /* Services */,
+				C78537E6591EC6352C4F5074 /* Utilities */,
+				A89306CDDB71AC0D8D2FFE05 /* Resources */,
+			);
+			name = "Dot Sync";
+			sourceTree = "<group>";
+		};
+		A89306CDDB71AC0D8D2FFE05 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		C78537E6591EC6352C4F5074 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Utilities;
+			sourceTree = "<group>";
+		};
+		CB09819D1A13BD30B87ADC88 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Services;
+			sourceTree = "<group>";
+		};
+		E2F44A4FA013857985FA8A28 = {
+			isa = PBXGroup;
+			children = (
+				68B926ED53872375D348C7A0 /* Products */,
+				4E9A7D94E53AD730971CA2C7 /* Frameworks */,
+				97541DA7D1D02E5162CA9000 /* Dot Sync */,
+				EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */,
+				F7EBBAB5EF97069066D20EFD /* CloudProvider.swift */,
+				FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */,
+				FE4E6D5395ACB8F8E9990811 /* ConfigFile.swift */,
+				233046D7912C359920BEEE9E /* ContentView.swift */,
+				600F98EC1575548082806730 /* SecurityScanner.swift */,
+				5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */,
+				A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */,
+				AE52C7804FB6056219A5475F /* CloudStorageProtocol.swift */,
+				C5E1D0DF1A2025FA215ED733 /* S3Provider.swift */,
+				888F9F592E34263FFF24DA06 /* Info.plist */,
+			);
+			sourceTree = "<group>";
+		};
+		F8591A21E94B236E1C5DF518 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2DF55476B60C019A06D43A5B /* Dot Sync */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 60A23A7A8D6FB8F1945C087D /* Build configuration list for PBXNativeTarget "Dot Sync" */;
+			buildPhases = (
+				746E29F98A410792C30912F7 /* Sources */,
+				C8D3F6486D108671652A8ABF /* Frameworks */,
+				D2E4F7034CBB71CCA85BB0EE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Dot Sync";
+			productName = "Dot Sync";
+			productReference = A2A37A693E8B2FB7977CB62F /* Dot Sync.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9B39A3B26F9660F2B9808931 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = ABF2173BCF956970AE679412 /* Build configuration list for PBXProject "Dot Sync" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E2F44A4FA013857985FA8A28;
+			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 68B926ED53872375D348C7A0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2DF55476B60C019A06D43A5B /* Dot Sync */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D2E4F7034CBB71CCA85BB0EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		746E29F98A410792C30912F7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1C5BC05209C1DB178AE1B9D /* DotSyncApp.swift in Sources */,
+				BC51E3EFCED70A395C3920DE /* CloudProvider.swift in Sources */,
+				146B4B628E938BB1D72EED3E /* SyncOperation.swift in Sources */,
+				37E96C9671266F8E560133C8 /* ConfigFile.swift in Sources */,
+				434F935EA88C411AD023E7C2 /* ContentView.swift in Sources */,
+				E280319E220B946672AD32A9 /* SecurityScanner.swift in Sources */,
+				40CE77F2818A95F6FFA55BDE /* FileDiscoveryService.swift in Sources */,
+				03FC6F1F48B7CC091EDC1B24 /* SyncEngine.swift in Sources */,
+				389211FE3E85BB0D26FA4E7B /* CloudStorageProtocol.swift in Sources */,
+				0FAA6A82FE269F23D3E10201 /* S3Provider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1578C3F2F1A85A29D69D048B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		67D7530948852E423FFE949F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Dot Sync/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.dotsync;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		EAD3FB5B860E1043DCDA061A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Dot Sync/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.dotsync;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		EDC94874C1560E77C2EA711B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		60A23A7A8D6FB8F1945C087D /* Build configuration list for PBXNativeTarget "Dot Sync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EAD3FB5B860E1043DCDA061A /* Release */,
+				67D7530948852E423FFE949F /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ABF2173BCF956970AE679412 /* Build configuration list for PBXProject "Dot Sync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EDC94874C1560E77C2EA711B /* Debug */,
+				1578C3F2F1A85A29D69D048B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9B39A3B26F9660F2B9808931 /* Project object */;
+}

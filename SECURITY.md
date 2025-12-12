@@ -104,7 +104,7 @@ For security and privacy, these are automatically excluded:
 
 ### Last Audit
 - **Date:** December 11, 2025
-- **Auditor:** Jordan Koch with Claude Code
+- **Auditor:** Jordan Koch
 - **Result:** Initial implementation with security best practices
 
 ### Security Checklist

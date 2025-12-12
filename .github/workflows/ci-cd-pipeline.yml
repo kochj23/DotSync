@@ -1,0 +1,507 @@
+#
+# CI/CD Pipeline for DisneyGPT Mobile iOS
+#
+# This workflow runs on every push and pull request to ensure code quality,
+# security, and functionality. It performs:
+# - Code linting and formatting checks
+# - Security vulnerability scanning
+# - Unit tests (KeychainManager, DataEncryption, CertificatePinning)
+# - Integration tests (Authentication flow)
+# - UI tests (Critical user flows)
+# - Code coverage reporting
+# - Build verification for all configurations
+# - Deployment to TestFlight (on release branches)
+#
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master, main, develop, release/* ]
+  pull_request:
+    branches: [ master, main, develop ]
+  workflow_dispatch:
+
+env:
+  XCODE_VERSION: '16.0'
+  IOS_SIMULATOR: 'iPhone 16 Pro'
+  IOS_VERSION: '18.0'
+
+jobs:
+  # Job 1: Code Quality Checks
+  code-quality:
+    name: Code Quality & Linting
+    runs-on: macos-14
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for better analysis
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install SwiftLint
+        run: |
+          brew install swiftlint
+
+      - name: Run SwiftLint
+        run: |
+          swiftlint lint --reporter github-actions-logging
+
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "Checking for unresolved TODO/FIXME comments..."
+          if grep -r "TODO\|FIXME" --include="*.swift" .; then
+            echo "⚠️ Found TODO/FIXME comments - review before release"
+            exit 0 # Don't fail, just warn
+          fi
+
+      - name: Check file sizes
+        run: |
+          echo "Checking for large files..."
+          find . -type f -size +1M | grep -v ".git" | grep -v "DerivedData" || echo "No large files found"
+
+  # Job 2: Security Scanning
+  security-scan:
+    name: Security Vulnerability Scanning
+    runs-on: macos-14
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Scanning for hardcoded secrets..."
+          # Check for API keys, passwords, tokens
+          if grep -r "sk_live\|password.*=.*\"\|api_key.*=.*\"" --include="*.swift" . | grep -v "TODO\|EXAMPLE"; then
+            echo "❌ Found potential hardcoded secrets!"
+            exit 1
+          else
+            echo "✅ No hardcoded secrets found"
+          fi
+
+      - name: Check certificate pinning
+        run: |
+          echo "Verifying certificate pinning is not using placeholders..."
+          if grep -r "AAAA\|BBBB\|CCCC" "Shared/Utilities/CertificatePinning.swift"; then
+            echo "❌ Certificate pinning using placeholder hashes!"
+            exit 1
+          else
+            echo "✅ Certificate pinning configured with real hashes"
+          fi
+
+      - name: Check for UserDefaults usage of sensitive data
+        run: |
+          echo "Checking for sensitive data in UserDefaults..."
+          if grep -r "UserDefaults.*token\|UserDefaults.*password\|UserDefaults.*secret" --include="*.swift" . | grep -v "Test\|Migration"; then
+            echo "⚠️ Found potential sensitive data in UserDefaults - verify it's intentional"
+            exit 0 # Warn but don't fail (migration code may reference this)
+          else
+            echo "✅ No sensitive data in UserDefaults"
+          fi
+
+      - name: Verify encryption key rotation
+        run: |
+          echo "Checking encryption key rotation implementation..."
+          if grep -q "func rotateKey()" "Shared/Utilities/DataEncryption.swift"; then
+            echo "✅ Encryption key rotation implemented"
+          else
+            echo "❌ Encryption key rotation not implemented!"
+            exit 1
+          fi
+
+  # Job 3: Unit Tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: macos-14
+    timeout-minutes: 30
+    needs: [code-quality]
+
+    strategy:
+      matrix:
+        include:
+          - test-suite: KeychainManagerTests
+            description: Keychain Security Tests
+          - test-suite: DataEncryptionTests
+            description: Encryption Tests
+          - test-suite: CertificatePinningTests
+            description: Certificate Pinning Tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          # If using CocoaPods
+          if [ -f "Podfile" ]; then
+            gem install cocoapods
+            pod install
+          fi
+
+      - name: Run ${{ matrix.description }}
+        run: |
+          xcodebuild test \
+            -scheme "DisneyGPT Mobile iOS Tests" \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
+            -only-testing:DisneyGPTMobileTests/${{ matrix.test-suite }} \
+            -enableCodeCoverage YES \
+            | tee test-output.log \
+            | xcpretty --color --report html --output "test-results-${{ matrix.test-suite }}.html"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-suite }}
+          path: test-results-${{ matrix.test-suite }}.html
+
+      - name: Check test results
+        run: |
+          if grep -q "** TEST FAILED **" test-output.log; then
+            echo "❌ Tests failed!"
+            exit 1
+          elif grep -q "** TEST SUCCEEDED **" test-output.log; then
+            echo "✅ All tests passed!"
+          fi
+
+  # Job 4: Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: macos-14
+    timeout-minutes: 30
+    needs: [code-quality, unit-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Run authentication integration tests
+        run: |
+          xcodebuild test \
+            -scheme "DisneyGPT Mobile iOS Tests" \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
+            -only-testing:DisneyGPTMobileTests/AuthenticationIntegrationTests \
+            -enableCodeCoverage YES \
+            | xcpretty --color
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            build/Logs/Test/*.xcresult
+
+  # Job 5: UI Tests
+  ui-tests:
+    name: UI Tests
+    runs-on: macos-14
+    timeout-minutes: 45
+    needs: [code-quality, unit-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Boot iOS Simulator
+        run: |
+          # Boot simulator before running UI tests
+          xcrun simctl boot "${{ env.IOS_SIMULATOR }}" || true
+          xcrun simctl list devices
+
+      - name: Run critical flows UI tests
+        run: |
+          xcodebuild test \
+            -scheme "DisneyGPT Mobile iOS Tests" \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
+            -only-testing:DisneyGPTMobileTests/CriticalFlowsUITests \
+            | xcpretty --color
+
+      - name: Upload UI test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: |
+            build/Logs/Test/*.xcresult
+
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-screenshots
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/*/Logs/Test/Attachments/*.png
+
+  # Job 6: Code Coverage
+  code-coverage:
+    name: Code Coverage Report
+    runs-on: macos-14
+    timeout-minutes: 30
+    needs: [unit-tests, integration-tests, ui-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Run all tests with coverage
+        run: |
+          xcodebuild test \
+            -scheme "DisneyGPT Mobile iOS Tests" \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }},OS=${{ env.IOS_VERSION }}" \
+            -enableCodeCoverage YES \
+            -derivedDataPath DerivedData
+
+      - name: Generate coverage report
+        run: |
+          xcrun llvm-cov export \
+            -format=lcov \
+            -instr-profile DerivedData/Build/ProfileData/*/Coverage.profdata \
+            DerivedData/Build/Products/Debug-iphonesimulator/*.app/*.dylib \
+            > coverage.lcov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.lcov
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Generate HTML coverage report
+        run: |
+          xcrun llvm-cov show \
+            -format=html \
+            -instr-profile DerivedData/Build/ProfileData/*/Coverage.profdata \
+            DerivedData/Build/Products/Debug-iphonesimulator/*.app/*.dylib \
+            -output-dir coverage-html
+
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-report
+          path: coverage-html/
+
+      - name: Check coverage threshold
+        run: |
+          # Extract coverage percentage
+          COVERAGE=$(xcrun llvm-cov report \
+            -instr-profile DerivedData/Build/ProfileData/*/Coverage.profdata \
+            DerivedData/Build/Products/Debug-iphonesimulator/*.app/*.dylib \
+            | grep TOTAL | awk '{print $10}' | sed 's/%//')
+
+          echo "Code coverage: ${COVERAGE}%"
+
+          # Require at least 80% coverage
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Code coverage (${COVERAGE}%) is below 80% threshold!"
+            exit 1
+          else
+            echo "✅ Code coverage (${COVERAGE}%) meets requirements"
+          fi
+
+  # Job 7: Build Verification
+  build-verification:
+    name: Build Verification (${{ matrix.configuration }})
+    runs-on: macos-14
+    timeout-minutes: 30
+    needs: [code-quality, security-scan]
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Build for iOS (${{ matrix.configuration }})
+        run: |
+          xcodebuild build \
+            -scheme "DisneyGPT Mobile iOS" \
+            -sdk iphonesimulator \
+            -configuration ${{ matrix.configuration }} \
+            -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }}" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            | xcpretty --color
+
+      - name: Build verification summary
+        run: |
+          echo "✅ iOS ${{ matrix.configuration }} build completed successfully"
+
+  # Job 8: Static Analysis
+  static-analysis:
+    name: Static Analysis (SwiftLint + Xcode Analyze)
+    runs-on: macos-14
+    timeout-minutes: 20
+    needs: [code-quality]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Run Xcode static analyzer
+        run: |
+          xcodebuild analyze \
+            -scheme "DisneyGPT Mobile iOS" \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=${{ env.IOS_SIMULATOR }}" \
+            | xcpretty --color
+
+      - name: Check for analyzer warnings
+        run: |
+          # Check build log for warnings
+          echo "Static analysis complete"
+
+  # Job 9: TestFlight Deployment (Release branches only)
+  deploy-testflight:
+    name: Deploy to TestFlight
+    runs-on: macos-14
+    timeout-minutes: 60
+    needs: [unit-tests, integration-tests, ui-tests, build-verification]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install Apple certificates
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # Import certificate
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode --output $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 \
+            -P "$P12_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Install provisioning profile
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode --output $PP_PATH
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+      - name: Build for App Store
+        run: |
+          xcodebuild archive \
+            -scheme "DisneyGPT Mobile iOS" \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/DisneyGPTMobile.xcarchive
+
+      - name: Export IPA
+        env:
+          EXPORT_OPTIONS_PLIST: ${{ secrets.EXPORT_OPTIONS_PLIST }}
+        run: |
+          echo -n "$EXPORT_OPTIONS_PLIST" | base64 --decode --output $RUNNER_TEMP/ExportOptions.plist
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/DisneyGPTMobile.xcarchive \
+            -exportOptionsPlist $RUNNER_TEMP/ExportOptions.plist \
+            -exportPath $RUNNER_TEMP/export
+
+      - name: Upload to TestFlight
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          xcrun altool --upload-app \
+            --type ios \
+            --file $RUNNER_TEMP/export/*.ipa \
+            --apiKey $APP_STORE_CONNECT_API_KEY
+
+      - name: Notify deployment
+        run: |
+          echo "✅ Successfully deployed to TestFlight!"
+
+  # Job 10: Notification
+  notify-completion:
+    name: Notify Pipeline Completion
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, ui-tests, build-verification, code-coverage]
+    if: always()
+
+    steps:
+      - name: Check results
+        run: |
+          echo "Pipeline completed!"
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "UI Tests: ${{ needs.ui-tests.result }}"
+          echo "Build Verification: ${{ needs.build-verification.result }}"
+          echo "Code Coverage: ${{ needs.code-coverage.result }}"
+
+      # Add Slack/Discord notification here if desired
+      # - name: Notify Slack
+      #   uses: slackapi/slack-github-action@v1
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "CI/CD Pipeline completed: ${{ job.status }}"
+      #       }

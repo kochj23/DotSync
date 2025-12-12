@@ -10,13 +10,17 @@
 		03FC6F1F48B7CC091EDC1B24 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */; };
 		0FAA6A82FE269F23D3E10201 /* S3Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E1D0DF1A2025FA215ED733 /* S3Provider.swift */; };
 		146B4B628E938BB1D72EED3E /* SyncOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */; };
+		20CD6DD0057A8FF97E0A0D39 /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */; };
+		214B4E3AB268855A5A154A99 /* ConflictResolutionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */; };
 		25C817A15F3CD570E10D773E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */; };
 		37E96C9671266F8E560133C8 /* ConfigFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE4E6D5395ACB8F8E9990811 /* ConfigFile.swift */; };
 		389211FE3E85BB0D26FA4E7B /* CloudStorageProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE52C7804FB6056219A5475F /* CloudStorageProtocol.swift */; };
+		3AB3A23128F64A6A67453B70 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5828FB9FE002309651E40457 /* MenuBarView.swift */; };
 		40CE77F2818A95F6FFA55BDE /* FileDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */; };
 		434F935EA88C411AD023E7C2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233046D7912C359920BEEE9E /* ContentView.swift */; };
 		479336427B77AD6115EB733A /* SyncProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */; };
 		6D58A59E47400F7F1C3E82AB /* GCPProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29DAE9F80694C6C9F2D44C2 /* GCPProvider.swift */; };
+		829CA412BBA2495CA664610B /* DiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED7EEBE906F3EA169140AFFF /* DiffView.swift */; };
 		96311ED304A3F04479DC962C /* AWSHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5EAF6D6F5E11E19E08F270 /* AWSHelper.swift */; };
 		A67A3C0BB8A940C2A4F3A48E /* AzureBlobProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3264F32520FAF6597171AAF /* AzureBlobProvider.swift */; };
 		AE8D2A8B67954CA3746306DD /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA24C5E062E969DF72A5B30 /* PreferencesView.swift */; };
@@ -32,10 +36,12 @@
 		1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		233046D7912C359920BEEE9E /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = "Dot Sync/Views/ContentView.swift"; sourceTree = "<group>"; };
 		431F6569BAED0A60EFFDD235 /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationService.swift; path = "Dot Sync/Services/NotificationService.swift"; sourceTree = "<group>"; };
+		5828FB9FE002309651E40457 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = "Dot Sync/Views/MenuBarView.swift"; sourceTree = "<group>"; };
 		5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileDiscoveryService.swift; path = "Dot Sync/Services/FileDiscoveryService.swift"; sourceTree = "<group>"; };
 		600F98EC1575548082806730 /* SecurityScanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SecurityScanner.swift; path = "Dot Sync/Services/SecurityScanner.swift"; sourceTree = "<group>"; };
 		888F9F592E34263FFF24DA06 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Dot Sync/Info.plist"; sourceTree = "<group>"; };
 		9A5EAF6D6F5E11E19E08F270 /* AWSHelper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AWSHelper.swift; path = "Dot Sync/Services/AWSHelper.swift"; sourceTree = "<group>"; };
+		A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConflictResolutionView.swift; path = "Dot Sync/Views/ConflictResolutionView.swift"; sourceTree = "<group>"; };
 		A2A37A693E8B2FB7977CB62F /* Dot Sync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dot Sync.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncEngine.swift; path = "Dot Sync/Services/SyncEngine.swift"; sourceTree = "<group>"; };
 		AE52C7804FB6056219A5475F /* CloudStorageProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CloudStorageProtocol.swift; path = "Dot Sync/Services/CloudStorageProtocol.swift"; sourceTree = "<group>"; };
@@ -44,10 +50,12 @@
 		E29DAE9F80694C6C9F2D44C2 /* GCPProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GCPProvider.swift; path = "Dot Sync/Services/GCPProvider.swift"; sourceTree = "<group>"; };
 		E3264F32520FAF6597171AAF /* AzureBlobProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AzureBlobProvider.swift; path = "Dot Sync/Services/AzureBlobProvider.swift"; sourceTree = "<group>"; };
 		ECA24C5E062E969DF72A5B30 /* PreferencesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PreferencesView.swift; path = "Dot Sync/Views/PreferencesView.swift"; sourceTree = "<group>"; };
+		ED7EEBE906F3EA169140AFFF /* DiffView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiffView.swift; path = "Dot Sync/Views/DiffView.swift"; sourceTree = "<group>"; };
 		EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DotSyncApp.swift; path = "Dot Sync/DotSyncApp.swift"; sourceTree = "<group>"; };
 		F7EBBAB5EF97069066D20EFD /* CloudProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CloudProvider.swift; path = "Dot Sync/Models/CloudProvider.swift"; sourceTree = "<group>"; };
 		FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncOperation.swift; path = "Dot Sync/Models/SyncOperation.swift"; sourceTree = "<group>"; };
 		FE4E6D5395ACB8F8E9990811 /* ConfigFile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConfigFile.swift; path = "Dot Sync/Models/ConfigFile.swift"; sourceTree = "<group>"; };
+		FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileWatcher.swift; path = "Dot Sync/Services/FileWatcher.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -150,6 +158,10 @@
 				E3264F32520FAF6597171AAF /* AzureBlobProvider.swift */,
 				E29DAE9F80694C6C9F2D44C2 /* GCPProvider.swift */,
 				DEA65682BF8469AB50679C79 /* iCloudProvider.swift */,
+				ED7EEBE906F3EA169140AFFF /* DiffView.swift */,
+				A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */,
+				5828FB9FE002309651E40457 /* MenuBarView.swift */,
+				FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -241,6 +253,10 @@
 				A67A3C0BB8A940C2A4F3A48E /* AzureBlobProvider.swift in Sources */,
 				6D58A59E47400F7F1C3E82AB /* GCPProvider.swift in Sources */,
 				B0AE434724995039B786AA8A /* iCloudProvider.swift in Sources */,
+				829CA412BBA2495CA664610B /* DiffView.swift in Sources */,
+				214B4E3AB268855A5A154A99 /* ConflictResolutionView.swift in Sources */,
+				3AB3A23128F64A6A67453B70 /* MenuBarView.swift in Sources */,
+				20CD6DD0057A8FF97E0A0D39 /* FileWatcher.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -91,9 +91,7 @@ struct ContentView: View {
         .sheet(isPresented: $showingPreview) {
             PreviewOperationsView(operations: syncEngine.previewOperations)
         }
-        .sheet(isPresented: $showingConflicts) {
-            ConflictResolutionView()
-        }
+        // Conflict resolution triggered during sync when conflicts detected
     }
 
     private var filteredFiles: [ConfigFile] {
@@ -449,30 +447,5 @@ struct PreviewOperationsView: View {
         case .download: return .orange
         case .skip: return .gray
         }
-    }
-}
-
-// MARK: - Conflict Resolution View
-
-struct ConflictResolutionView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        VStack {
-            Text("Resolve Conflicts")
-                .font(.title)
-
-            Spacer()
-
-            Text("Conflict resolution coming soon...")
-
-            Spacer()
-
-            Button("Close") {
-                dismiss()
-            }
-        }
-        .padding()
-        .frame(width: 600, height: 400)
     }
 }

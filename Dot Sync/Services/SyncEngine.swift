@@ -16,6 +16,8 @@ class SyncEngine: ObservableObject {
     @Published var currentProvider: CloudProviderConfig?
     @Published var isSyncing = false
     @Published var lastSyncDate: Date?
+    @Published var previewOperations: [SyncOperation] = []
+    @Published var isDryRun = false
 
     private var cloudProvider: CloudStorageProtocol?
 
@@ -38,6 +40,49 @@ class SyncEngine: ObservableObject {
             // cloudProvider = iCloudProvider(config: provider, credentials: nil)
             cloudProvider = nil // Placeholder
         }
+    }
+
+    // MARK: - Dry Run / Preview
+
+    /// Preview what sync would do without executing (Dry Run Mode)
+    func previewSync(files: [ConfigFile]) async throws -> [SyncOperation] {
+        guard let provider = cloudProvider else {
+            throw CloudStorageError.notConfigured
+        }
+
+        var operations: [SyncOperation] = []
+
+        // Get remote file list
+        let remoteFiles = try await provider.listFiles()
+
+        for file in files {
+            let remoteFile = remoteFiles.first { $0.path.contains(file.filename) }
+
+            let direction: SyncDirection
+            if let remote = remoteFile {
+                // Compare timestamps
+                if file.lastModified > remote.lastModified {
+                    direction = .upload
+                } else if file.lastModified < remote.lastModified {
+                    direction = .download
+                } else {
+                    // Files match, skip
+                    direction = .skip
+                }
+            } else {
+                // Not on remote, upload
+                direction = .upload
+            }
+
+            if direction != .skip {
+                var operation = SyncOperation(file: file, direction: direction)
+                operation.status = .pending
+                operations.append(operation)
+            }
+        }
+
+        self.previewOperations = operations
+        return operations
     }
 
     // MARK: - Sync Operations
@@ -89,31 +134,53 @@ class SyncEngine: ObservableObject {
     }
 
     /// Execute sync for selected files
-    func sync(files: [ConfigFile], direction: SyncDirection) async throws {
+    func sync(files: [ConfigFile], direction: SyncDirection, dryRun: Bool = false) async throws {
         guard let provider = cloudProvider else {
             throw CloudStorageError.notConfigured
         }
 
+        // If dry run, just preview
+        if dryRun {
+            isDryRun = true
+            _ = try await previewSync(files: files)
+            isDryRun = false
+            return
+        }
+
         isSyncing = true
         defer { isSyncing = false }
+
+        var successCount = 0
+        var errorCount = 0
 
         for file in files {
             do {
                 switch direction {
                 case .upload:
                     try await uploadFile(file, using: provider)
+                    successCount += 1
                 case .download:
                     try await downloadFile(file, using: provider)
+                    successCount += 1
                 case .skip:
                     continue
                 }
             } catch {
                 print("[SyncEngine] Error syncing \(file.filename): \(error)")
+                errorCount += 1
                 // Continue with other files
             }
         }
 
         lastSyncDate = Date()
+
+        // Send notification
+        if successCount > 0 {
+            NotificationService.shared.notifySyncCompleted(fileCount: successCount)
+        }
+        if errorCount > 0 {
+            NotificationService.shared.notifySyncFailed(error: "\(errorCount) files failed to sync")
+        }
 
         // Re-analyze after sync
         try await analyzeSyncStatus(for: files)

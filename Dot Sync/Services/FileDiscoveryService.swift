@@ -25,13 +25,26 @@ class FileDiscoveryService: ObservableObject {
         .shell: [".zshrc", ".bashrc", ".bash_profile", ".profile", ".zprofile",
                 ".p10k.zsh", ".fzf.bash", ".fzf.zsh"],
         .git: [".gitconfig", ".gitignore_global"],
-        .editor: [".vimrc", ".vim/", ".emacs", ".emacs.d/", ".ideavimrc"],
+        .editor: [".vimrc", ".vim/", ".emacs", ".emacs.d/", ".ideavimrc",
+                 ".config/Code/User/settings.json", ".vscode/settings.json"],
         .cloud: [".aws/config", ".azure/config", ".config/gcloud/"],
         .docker: [".docker/config.json", ".dockerignore"],
         .language: [".npmrc", ".gemrc", ".pypirc", ".cargo/config"],
         .claude: [".claude/CLAUDE.md", ".claude/settings.json", ".claude/preferences.md"],
         .documentation: [".aws_cheatsheet.md", ".azure_cheatsheet.md", ".gcp_cheatsheet.md",
                         ".zsh_cheatsheet.md", ".omz_plugin_recommendations.md"]
+    ]
+
+    /// Application preference files (in ~/Library/Preferences/)
+    private let appPreferences: [ConfigCategory: [String]] = [
+        .shell: [
+            "com.apple.Terminal.plist",           // Terminal profiles and settings
+            "com.googlecode.iterm2.plist"         // iTerm2 (if installed)
+        ],
+        .editor: [
+            "com.microsoft.VSCode.plist",         // VS Code
+            "com.sublimetext.3.plist"             // Sublime Text (if installed)
+        ]
     ]
 
     /// Files/patterns to never sync (security/privacy)
@@ -62,10 +75,24 @@ class FileDiscoveryService: ObservableObject {
 
         var foundFiles: [ConfigFile] = []
 
-        // Scan for individual files
+        // Scan for individual files in home directory
         for (category, patterns) in filePatterns {
             for pattern in patterns {
                 let fullPath = homeDirectory.appendingPathComponent(pattern)
+
+                if fileManager.fileExists(atPath: fullPath.path) {
+                    if let configFile = await createConfigFile(at: fullPath, category: category) {
+                        foundFiles.append(configFile)
+                    }
+                }
+            }
+        }
+
+        // Scan for application preferences in ~/Library/Preferences/
+        let preferencesDir = homeDirectory.appendingPathComponent("Library/Preferences")
+        for (category, prefFiles) in appPreferences {
+            for prefFile in prefFiles {
+                let fullPath = preferencesDir.appendingPathComponent(prefFile)
 
                 if fileManager.fileExists(atPath: fullPath.path) {
                     if let configFile = await createConfigFile(at: fullPath, category: category) {
@@ -162,6 +189,11 @@ class FileDiscoveryService: ObservableObject {
         // Critical files
         if [".zshrc", ".bashrc", ".bash_profile", ".gitconfig", ".vimrc"].contains(filename) {
             return .critical
+        }
+
+        // Terminal profiles are high priority (they're a pain to recreate!)
+        if filename.contains("Terminal.plist") || filename.contains("iterm2.plist") {
+            return .high
         }
 
         // High priority by category

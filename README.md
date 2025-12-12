@@ -16,8 +16,10 @@
 
 Think of it as version control for your dotfiles with conflict detection:
 - Shell configs (.zshrc, .bashrc, .bash_profile)
+- **Terminal profiles** (~/Library/Preferences/com.apple.Terminal.plist) - **NEW!**
+- **iTerm2 profiles** (~/Library/Preferences/com.googlecode.iterm2.plist) - **NEW!**
 - Git configuration (.gitconfig)
-- Editor configs (.vimrc, .vim/)
+- Editor configs (.vimrc, .vim/, VS Code settings)
 - Cloud CLI configs (.aws/config, .azure/config, gcloud/)
 - Docker settings (.docker/config.json)
 - Claude Code settings (.claude/CLAUDE.md, .claude/settings.json)
@@ -242,12 +244,17 @@ Dot Sync/
 - `.profile` - Universal shell profile
 - `.p10k.zsh` - Powerlevel10k theme
 
+**Terminal Profiles (High Priority):**
+- `~/Library/Preferences/com.apple.Terminal.plist` - Terminal.app profiles, colors, fonts
+- `~/Library/Preferences/com.googlecode.iterm2.plist` - iTerm2 profiles (if installed)
+
 **Version Control (Critical):**
 - `.gitconfig` - Git global settings
 
 **Editors (High):**
 - `.vimrc` - Vim configuration
 - `.vim/` - Vim plugins and settings
+- `.config/Code/User/settings.json` - VS Code settings
 
 **Cloud CLIs (High):**
 - `.aws/config` - AWS CLI (credentials excluded)

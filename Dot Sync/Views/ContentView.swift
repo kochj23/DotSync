@@ -35,6 +35,30 @@ struct ContentView: View {
                     }
                 }
 
+                if !syncEngine.conflictedFiles.isEmpty {
+                    Section {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                            Text("\(syncEngine.conflictedFiles.count) Conflicts")
+                                .font(.headline)
+                                .foregroundColor(.red)
+                            Spacer()
+                            Button("Resolve") {
+                                Task {
+                                    try? await syncEngine.checkForConflicts()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.red)
+                        }
+                        .padding(.vertical, 4)
+                    } header: {
+                        Text("ATTENTION REQUIRED")
+                            .foregroundColor(.red)
+                    }
+                }
+
                 Section("Categories") {
                     ForEach(ConfigCategory.allCases, id: \.self) { category in
                         CategoryRow(category: category, fileCount: fileCount(for: category))
@@ -56,6 +80,28 @@ struct ContentView: View {
                         Label("Scan", systemImage: "arrow.clockwise")
                     }
                     .disabled(discoveryService.isScanning)
+                }
+
+                ToolbarItem(placement: .automatic) {
+                    Button(action: {
+                        Task {
+                            try? await syncEngine.checkForConflicts()
+                        }
+                    }) {
+                        Label("Check Conflicts", systemImage: "exclamationmark.triangle")
+                    }
+                    .disabled(syncEngine.isSyncing)
+                    .overlay(alignment: .topTrailing) {
+                        if !syncEngine.conflictedFiles.isEmpty {
+                            Text("\(syncEngine.conflictedFiles.count)")
+                                .font(.caption2)
+                                .padding(4)
+                                .background(Color.red)
+                                .foregroundColor(.white)
+                                .clipShape(Circle())
+                                .offset(x: 8, y: -8)
+                        }
+                    }
                 }
 
                 ToolbarItem(placement: .automatic) {
@@ -83,6 +129,8 @@ struct ContentView: View {
         .onAppear {
             Task {
                 await discoveryService.scanHomeDirectory()
+                // Check for conflicts on startup
+                try? await syncEngine.checkForConflicts()
             }
         }
         .sheet(isPresented: $showingPreferences) {
@@ -91,7 +139,17 @@ struct ContentView: View {
         .sheet(isPresented: $showingPreview) {
             PreviewOperationsView(operations: syncEngine.previewOperations)
         }
-        // Conflict resolution triggered during sync when conflicts detected
+        .sheet(isPresented: $syncEngine.showingConflictDialog) {
+            if let conflict = syncEngine.currentConflict {
+                ConflictResolutionView(
+                    file: conflict.file,
+                    localContent: conflict.localContent,
+                    remoteContent: conflict.remoteContent,
+                    localDate: conflict.localDate,
+                    remoteDate: conflict.remoteDate
+                )
+            }
+        }
     }
 
     private var filteredFiles: [ConfigFile] {
@@ -265,6 +323,19 @@ struct FileListView: View {
 
                 Spacer()
 
+                Button(action: {
+                    Task {
+                        let filesToAnalyze = selectedFiles.compactMap { id in
+                            files.first { $0.id == id }
+                        }
+                        try? await SyncEngine.shared.analyzeSyncStatus(for: filesToAnalyze)
+                    }
+                }) {
+                    Label("Scan Status", systemImage: "magnifyingglass")
+                }
+                .disabled(selectedFiles.isEmpty)
+                .help("Check sync status for selected files")
+
                 if dryRunEnabled {
                     Button(action: onPreview) {
                         Label("Preview Sync", systemImage: "eye")
@@ -290,6 +361,7 @@ struct FileListView: View {
 
 struct FileRow: View {
     let file: ConfigFile
+    @StateObject private var syncEngine = SyncEngine.shared
 
     var body: some View {
         HStack {
@@ -304,6 +376,11 @@ struct FileRow: View {
                         Image(systemName: "exclamationmark.shield.fill")
                             .foregroundColor(.red)
                             .help("Contains credentials - not safe to sync")
+                    }
+                    if isConflicted {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                            .help("Conflict detected - needs resolution")
                     }
                 }
 
@@ -320,11 +397,49 @@ struct FileRow: View {
                 Text(file.lastModifiedFormatted)
                     .font(.caption2)
                     .foregroundColor(.secondary)
+
+                if let syncStatus = syncStatus {
+                    syncStatusBadge(status: syncStatus.state)
+                }
             }
 
             priorityBadge
         }
         .padding(.vertical, 4)
+    }
+
+    private var isConflicted: Bool {
+        syncEngine.conflictedFiles.contains { $0.id == file.id }
+    }
+
+    private var syncStatus: SyncStatus? {
+        syncEngine.syncStatuses.first { $0.file.id == file.id }
+    }
+
+    private func syncStatusBadge(status: SyncState) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: status.icon)
+                .font(.caption2)
+            Text(status.rawValue)
+                .font(.caption2)
+        }
+        .foregroundColor(statusColor(status))
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(statusColor(status).opacity(0.1))
+        .cornerRadius(4)
+    }
+
+    private func statusColor(_ status: SyncState) -> Color {
+        switch status {
+        case .synced: return .green
+        case .localNewer: return .blue
+        case .remoteNewer: return .orange
+        case .conflict: return .red
+        case .notOnRemote: return .purple
+        case .notOnLocal: return .cyan
+        case .error: return .red
+        }
     }
 
     private var priorityBadge: some View {

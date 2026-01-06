@@ -101,10 +101,10 @@ struct ConflictResolutionView: View {
 
             // Action buttons
             HStack(spacing: 12) {
-                Button("Cancel") {
-                    dismiss()
+                Button(action: { selectResolution(.skip) }) {
+                    Label("Skip", systemImage: "clock.arrow.circlepath")
                 }
-                .keyboardShortcut(.cancelAction)
+                .help("Skip this conflict and resolve it later")
 
                 Spacer()
 
@@ -113,19 +113,20 @@ struct ConflictResolutionView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.blue)
-                .help("Upload your local version to cloud")
+                .help("Upload your local version to cloud (overwrites remote)")
 
                 Button(action: { selectResolution(.useRemote) }) {
                     Label("Use Remote", systemImage: "arrow.down.circle.fill")
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.orange)
-                .help("Download cloud version to this machine")
+                .help("Download cloud version to this machine (overwrites local)")
 
-                Button(action: openInEditor) {
-                    Label("Open in Editor", systemImage: "pencil")
+                Button(action: { openInEditorAndMarkForMerge() }) {
+                    Label("Merge Manually", systemImage: "pencil.and.list.clipboard")
                 }
-                .help("Open both files in your default editor for manual merging")
+                .buttonStyle(.bordered)
+                .help("Open both files in editor for manual merging")
             }
             .padding()
             .disabled(isResolving)
@@ -165,19 +166,63 @@ struct ConflictResolutionView: View {
         }
     }
 
-    private func openInEditor() {
-        // Save both versions to temp files and open
-        let tempDir = FileManager.default.temporaryDirectory
+    private func openInEditorAndMarkForMerge() {
+        // Save both versions to temp files with clear naming
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("DotSync-Conflicts")
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 
-        let localFile = tempDir.appendingPathComponent("\(file.filename).local")
-        let remoteFile = tempDir.appendingPathComponent("\(file.filename).remote")
+        let timestamp = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .short)
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: ":", with: "-")
+            .replacingOccurrences(of: " ", with: "_")
 
+        let localFile = tempDir.appendingPathComponent("\(file.filename).local.\(timestamp)")
+        let remoteFile = tempDir.appendingPathComponent("\(file.filename).remote.\(timestamp)")
+        let mergedFile = tempDir.appendingPathComponent("\(file.filename).merged.\(timestamp)")
+
+        // Write all three files
         try? localContent.data(using: .utf8)?.write(to: localFile)
         try? remoteContent.data(using: .utf8)?.write(to: remoteFile)
 
-        // Open in default editor
-        NSWorkspace.shared.open([localFile, remoteFile],
+        // Create merged template with markers
+        let mergedTemplate = """
+        <<<<<<< LOCAL (This Mac) - Modified: \(DateFormatter.localizedString(from: localDate, dateStyle: .short, timeStyle: .short))
+        \(localContent)
+        =======
+        >>>>>>> REMOTE (Cloud) - Modified: \(DateFormatter.localizedString(from: remoteDate, dateStyle: .short, timeStyle: .short))
+        \(remoteContent)
+        <<<<<<< END
+
+        INSTRUCTIONS:
+        1. Remove the conflict markers (<<<<<<, =======, >>>>>>>)
+        2. Merge the changes as needed
+        3. Save this file
+        4. Copy the merged content to: \(file.path)
+        5. Run sync again to upload the merged version
+        """
+        try? mergedTemplate.data(using: .utf8)?.write(to: mergedFile)
+
+        // Open all three files
+        NSWorkspace.shared.open([localFile, remoteFile, mergedFile],
                                withApplicationAt: URL(fileURLWithPath: "/System/Applications/TextEdit.app"),
                                configuration: NSWorkspace.OpenConfiguration())
+
+        // Trigger merge resolution (keeps conflict in list but closes dialog)
+        Task {
+            try? await SyncEngine.shared.resolveConflict(for: file, resolution: .merge)
+        }
+
+        // Show instructions to user
+        NotificationService.shared.notify(
+            title: "Manual Merge Started",
+            body: """
+            Files opened in TextEdit:
+            • \(file.filename).local - Your version
+            • \(file.filename).remote - Cloud version
+            • \(file.filename).merged - Template for merging
+
+            Merge the files, save to your home directory, and sync again.
+            """
+        )
     }
 }

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E0E103C7F1747B0872A381D /* NASProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */; };
+		1FFAEA8D03C04ADF8099CF3B /* OneDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */; };
+		D227E29E175A48FE80B9A86F /* GoogleDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */; };
 		03FC6F1F48B7CC091EDC1B24 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */; };
 		0FAA6A82FE269F23D3E10201 /* S3Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E1D0DF1A2025FA215ED733 /* S3Provider.swift */; };
 		146B4B628E938BB1D72EED3E /* SyncOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */; };
@@ -32,6 +35,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NASProvider.swift; path = "Dot Sync/Services/NASProvider.swift"; sourceTree = "<group>"; };
+		C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OneDriveProvider.swift; path = "Dot Sync/Services/OneDriveProvider.swift"; sourceTree = "<group>"; };
+		1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GoogleDriveProvider.swift; path = "Dot Sync/Services/GoogleDriveProvider.swift"; sourceTree = "<group>"; };
 		1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncProfile.swift; path = "Dot Sync/Models/SyncProfile.swift"; sourceTree = "<group>"; };
 		1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		233046D7912C359920BEEE9E /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = "Dot Sync/Views/ContentView.swift"; sourceTree = "<group>"; };
@@ -130,6 +136,9 @@
 		CB09819D1A13BD30B87ADC88 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */,
+				C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */,
+				1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */,
 			);
 			name = Services;
 			sourceTree = "<group>";
@@ -236,6 +245,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E0E103C7F1747B0872A381D /* NASProvider.swift in Sources */,
+				1FFAEA8D03C04ADF8099CF3B /* OneDriveProvider.swift in Sources */,
+				D227E29E175A48FE80B9A86F /* GoogleDriveProvider.swift in Sources */,
 				F1C5BC05209C1DB178AE1B9D /* DotSyncApp.swift in Sources */,
 				BC51E3EFCED70A395C3920DE /* CloudProvider.swift in Sources */,
 				146B4B628E938BB1D72EED3E /* SyncOperation.swift in Sources */,

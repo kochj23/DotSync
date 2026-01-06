@@ -88,8 +88,30 @@ struct CloudProviderView: View {
     @State private var selectedProvider: CloudProviderType = .awsS3
     @State private var bucketName = ""
     @State private var region = "us-east-1"
+
+    // AWS S3 / S3-Compatible
     @State private var accessKeyId = ""
     @State private var secretAccessKey = ""
+    @State private var endpoint = ""
+
+    // Azure
+    @State private var tenantId = ""
+    @State private var clientId = ""
+    @State private var clientSecret = ""
+
+    // Google Cloud
+    @State private var projectId = ""
+    @State private var serviceAccountKey = ""
+
+    // NAS
+    @State private var serverAddress = ""
+    @State private var sharePath = ""
+    @State private var username = ""
+    @State private var password = ""
+
+    // OneDrive / Google Drive
+    @State private var refreshToken = ""
+
     @State private var testingConnection = false
     @State private var connectionResult: String?
 
@@ -108,19 +130,67 @@ struct CloudProviderView: View {
             }
 
             Section("Configuration") {
-                TextField("Bucket/Container Name:", text: $bucketName)
-                    .help("S3 bucket, Azure container, or GCS bucket name")
+                switch selectedProvider {
+                case .awsS3, .s3Compatible, .googleCloud:
+                    TextField("Bucket Name:", text: $bucketName)
+                        .help("S3 bucket or GCS bucket name")
+                case .azureBlob:
+                    TextField("Container Name:", text: $bucketName)
+                        .help("Azure Blob container name")
+                case .iCloud:
+                    TextField("Folder Name:", text: $bucketName)
+                        .help("iCloud Drive folder name")
+                case .nas:
+                    TextField("Share Path:", text: $sharePath)
+                        .help("NAS share path (e.g., /volume1/backup)")
+                case .oneDrive, .googleDrive:
+                    TextField("Folder ID:", text: $bucketName)
+                        .help("Parent folder ID in Drive")
+                }
 
-                if selectedProvider == .awsS3 {
+                if selectedProvider == .awsS3 || selectedProvider == .s3Compatible {
                     TextField("Region:", text: $region)
                         .help("AWS region (e.g., us-east-1)")
+                }
+
+                if selectedProvider == .s3Compatible {
+                    TextField("Endpoint URL:", text: $endpoint)
+                        .help("S3-compatible endpoint (e.g., https://s3.provider.com)")
                 }
             }
 
             if selectedProvider.requiresCredentials {
                 Section("Credentials") {
-                    TextField("Access Key ID:", text: $accessKeyId)
-                    SecureField("Secret Access Key:", text: $secretAccessKey)
+                    switch selectedProvider {
+                    case .awsS3, .s3Compatible:
+                        TextField("Access Key ID:", text: $accessKeyId)
+                        SecureField("Secret Access Key:", text: $secretAccessKey)
+
+                    case .azureBlob:
+                        TextField("Tenant ID:", text: $tenantId)
+                        TextField("Client ID:", text: $clientId)
+                        SecureField("Client Secret:", text: $clientSecret)
+
+                    case .googleCloud:
+                        TextField("Project ID:", text: $projectId)
+                        SecureField("Service Account Key or Access Token:", text: $serviceAccountKey)
+                            .help("Paste entire service account JSON or a pre-generated access token")
+
+                    case .nas:
+                        TextField("Server Address:", text: $serverAddress)
+                            .help("NAS server address (e.g., 192.168.1.100 or nas.local)")
+                        TextField("Username:", text: $username)
+                        SecureField("Password:", text: $password)
+
+                    case .oneDrive, .googleDrive:
+                        TextField("Client ID:", text: $clientId)
+                        SecureField("Client Secret:", text: $clientSecret)
+                        SecureField("Refresh Token:", text: $refreshToken)
+                            .help("OAuth refresh token from authorization flow")
+
+                    case .iCloud:
+                        EmptyView()
+                    }
 
                     Text("Credentials are stored securely in macOS Keychain")
                         .font(.caption)
@@ -133,7 +203,7 @@ struct CloudProviderView: View {
                     Button("Test Connection") {
                         testConnection()
                     }
-                    .disabled(bucketName.isEmpty || testingConnection)
+                    .disabled(testingConnection || !isConfigurationValid)
 
                     if testingConnection {
                         ProgressView()
@@ -150,10 +220,27 @@ struct CloudProviderView: View {
                 Button("Save") {
                     saveConfiguration()
                 }
-                .disabled(bucketName.isEmpty)
+                .disabled(!isConfigurationValid)
             }
         }
         .padding()
+    }
+
+    private var isConfigurationValid: Bool {
+        switch selectedProvider {
+        case .awsS3, .s3Compatible:
+            return !bucketName.isEmpty && !accessKeyId.isEmpty && !secretAccessKey.isEmpty
+        case .azureBlob:
+            return !bucketName.isEmpty && !tenantId.isEmpty && !clientId.isEmpty && !clientSecret.isEmpty
+        case .googleCloud:
+            return !bucketName.isEmpty && !projectId.isEmpty && !serviceAccountKey.isEmpty
+        case .iCloud:
+            return !bucketName.isEmpty
+        case .nas:
+            return !sharePath.isEmpty && !serverAddress.isEmpty && !username.isEmpty && !password.isEmpty
+        case .oneDrive, .googleDrive:
+            return !bucketName.isEmpty && !clientId.isEmpty && !clientSecret.isEmpty && !refreshToken.isEmpty
+        }
     }
 
     private func testConnection() {
@@ -162,20 +249,9 @@ struct CloudProviderView: View {
 
         Task {
             do {
-                // Create temporary config and test
-                let config = CloudProviderConfig(
-                    type: selectedProvider,
-                    name: selectedProvider.rawValue,
-                    bucket: bucketName,
-                    region: region.isEmpty ? nil : region
-                )
+                let (config, credentials) = buildConfiguration()
+                let provider = createProvider(config: config, credentials: credentials)
 
-                let credentials = CloudCredentials.aws(
-                    accessKeyId: accessKeyId,
-                    secretAccessKey: secretAccessKey
-                )
-
-                let provider = S3Provider(config: config, credentials: credentials)
                 let success = try await provider.testConnection()
 
                 await MainActor.run {
@@ -192,20 +268,94 @@ struct CloudProviderView: View {
     }
 
     private func saveConfiguration() {
-        // Save to SyncEngine
+        let (config, credentials) = buildConfiguration()
+        SyncEngine.shared.configure(provider: config, credentials: credentials)
+        connectionResult = "✅ Configuration saved"
+    }
+
+    private func buildConfiguration() -> (CloudProviderConfig, CloudCredentials?) {
         let config = CloudProviderConfig(
             type: selectedProvider,
             name: selectedProvider.rawValue,
-            bucket: bucketName,
-            region: region.isEmpty ? nil : region
+            bucket: selectedProvider == .nas ? sharePath : bucketName,
+            region: region.isEmpty ? nil : region,
+            endpoint: endpoint.isEmpty ? nil : endpoint
         )
 
-        let credentials = selectedProvider.requiresCredentials ?
-            CloudCredentials.aws(accessKeyId: accessKeyId, secretAccessKey: secretAccessKey) : nil
+        let credentials: CloudCredentials?
 
-        SyncEngine.shared.configure(provider: config, credentials: credentials)
+        switch selectedProvider {
+        case .awsS3, .s3Compatible:
+            credentials = CloudCredentials.aws(
+                accessKeyId: accessKeyId,
+                secretAccessKey: secretAccessKey
+            )
 
-        connectionResult = "✅ Configuration saved"
+        case .azureBlob:
+            credentials = CloudCredentials.azure(
+                tenantId: tenantId,
+                clientId: clientId,
+                clientSecret: clientSecret
+            )
+
+        case .googleCloud:
+            credentials = CloudCredentials.gcp(
+                projectId: projectId,
+                serviceAccountKey: serviceAccountKey
+            )
+
+        case .nas:
+            credentials = CloudCredentials.nas(
+                serverAddress: serverAddress,
+                sharePath: sharePath,
+                username: username,
+                password: password
+            )
+
+        case .oneDrive:
+            credentials = CloudCredentials.oneDrive(
+                clientId: clientId,
+                clientSecret: clientSecret,
+                refreshToken: refreshToken
+            )
+
+        case .googleDrive:
+            credentials = CloudCredentials.googleDrive(
+                clientId: clientId,
+                clientSecret: clientSecret,
+                refreshToken: refreshToken
+            )
+
+        case .iCloud:
+            credentials = CloudCredentials.iCloud
+        }
+
+        return (config, credentials)
+    }
+
+    private func createProvider(config: CloudProviderConfig, credentials: CloudCredentials?) -> CloudStorageProtocol {
+        switch selectedProvider {
+        case .awsS3, .s3Compatible:
+            return S3Provider(config: config, credentials: credentials)
+
+        case .azureBlob:
+            return AzureBlobProvider(config: config, credentials: credentials)
+
+        case .googleCloud:
+            return GCPProvider(config: config, credentials: credentials)
+
+        case .iCloud:
+            return iCloudProvider(config: config, credentials: credentials)
+
+        case .nas:
+            return NASProvider(config: config, credentials: credentials)
+
+        case .oneDrive:
+            return OneDriveProvider(config: config, credentials: credentials)
+
+        case .googleDrive:
+            return GoogleDriveProvider(config: config, credentials: credentials)
+        }
     }
 }
 

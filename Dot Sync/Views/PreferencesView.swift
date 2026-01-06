@@ -138,8 +138,18 @@ struct CloudProviderView: View {
                     TextField("Container Name:", text: $bucketName)
                         .help("Azure Blob container name")
                 case .iCloud:
-                    TextField("Folder Name:", text: $bucketName)
-                        .help("iCloud Drive folder name")
+                    VStack(alignment: .leading, spacing: 8) {
+                        TextField("Folder Name or Path:", text: $bucketName)
+                            .help("Folder name (e.g., 'DotFiles') or full path")
+
+                        Text("Examples: 'DotFiles' or full path like '/Users/username/Library/Mobile Documents/com~apple~CloudDocs/DotFiles'")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Text("If you created a folder in Finder, just enter its name. The app will search common iCloud Drive locations.")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                    }
                 case .nas:
                     TextField("Share Path:", text: $sharePath)
                         .help("NAS share path (e.g., /volume1/backup)")

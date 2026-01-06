@@ -16,26 +16,66 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
     override init(config: CloudProviderConfig, credentials: CloudCredentials?) {
         super.init(config: config, credentials: credentials)
 
-        // Use standard iCloud Drive path: ~/Library/Mobile Documents/com~apple~CloudDocs/
         let homeDir = fileManager.homeDirectoryForCurrentUser
-        let iCloudDriveBase = homeDir
-            .appendingPathComponent("Library")
-            .appendingPathComponent("Mobile Documents")
-            .appendingPathComponent("com~apple~CloudDocs")
 
-        // User specifies folder name in config.bucket (e.g., "DotFiles")
-        let iCloudFolder = iCloudDriveBase.appendingPathComponent(config.bucket)
+        // Try multiple iCloud Drive paths (macOS versions vary)
+        let possiblePaths = [
+            // Modern macOS (10.15+): ~/Library/Mobile Documents/com~apple~CloudDocs/
+            homeDir.appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs"),
+            // Alternative path for some systems
+            homeDir.appendingPathComponent("Library/CloudStorage/iCloud Drive"),
+            // Google Drive (commonly confused with iCloud)
+            homeDir.appendingPathComponent("My Drive"),
+            // Direct iCloud Drive symlink
+            homeDir.appendingPathComponent("iCloud Drive"),
+            // If user specified full path, try it directly
+            URL(fileURLWithPath: config.bucket.hasPrefix("/") ? config.bucket : homeDir.appendingPathComponent(config.bucket).path),
+        ]
 
-        // Verify iCloud Drive is accessible
-        if fileManager.fileExists(atPath: iCloudDriveBase.path) {
-            containerURL = iCloudFolder
-
-            // Create folder structure if needed
-            try? fileManager.createDirectory(at: containerURL!, withIntermediateDirectories: true)
-            print("[iCloudProvider] Using iCloud Drive folder: \(iCloudFolder.path)")
-        } else {
-            print("[iCloudProvider] ⚠️ iCloud Drive not accessible at: \(iCloudDriveBase.path)")
+        var iCloudDriveBase: URL?
+        for path in possiblePaths {
+            if fileManager.fileExists(atPath: path.path) {
+                iCloudDriveBase = path
+                print("[iCloudProvider] ✅ Found iCloud Drive at: \(path.path)")
+                break
+            }
         }
+
+        // Determine final iCloud folder path
+        var iCloudFolder: URL
+
+        if let baseURL = iCloudDriveBase {
+            // Found iCloud Drive base, append user's folder name
+            iCloudFolder = baseURL.appendingPathComponent(config.bucket)
+        } else if config.bucket.hasPrefix("/") || config.bucket.hasPrefix("~") {
+            // User provided full path
+            let expandedPath = config.bucket.replacingOccurrences(of: "~", with: homeDir.path)
+            iCloudFolder = URL(fileURLWithPath: expandedPath)
+            print("[iCloudProvider] Using user-specified path: \(iCloudFolder.path)")
+        } else {
+            // Can't determine path - log diagnostics
+            print("[iCloudProvider] ⚠️ iCloud Drive not found. Tried paths:")
+            for path in possiblePaths {
+                print("  - \(path.path) [exists: \(fileManager.fileExists(atPath: path.path))]")
+            }
+            print("[iCloudProvider] Folder name entered: '\(config.bucket)'")
+            return
+        }
+
+        // Verify or create the folder
+        if fileManager.fileExists(atPath: iCloudFolder.path) {
+            print("[iCloudProvider] ✅ Found existing folder: \(iCloudFolder.path)")
+        } else {
+            do {
+                try fileManager.createDirectory(at: iCloudFolder, withIntermediateDirectories: true)
+                print("[iCloudProvider] ✅ Created iCloud Drive folder: \(iCloudFolder.path)")
+            } catch {
+                print("[iCloudProvider] ❌ Error creating folder: \(error)")
+                return
+            }
+        }
+
+        containerURL = iCloudFolder
     }
 
     var isConfigured: Bool {

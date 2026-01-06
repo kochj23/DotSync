@@ -169,7 +169,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-results-${{ matrix.test-suite }}
           path: test-results-${{ matrix.test-suite }}.html
@@ -211,7 +211,7 @@ jobs:
 
       - name: Upload integration test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: integration-test-results
           path: |
@@ -250,7 +250,7 @@ jobs:
 
       - name: Upload UI test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ui-test-results
           path: |
@@ -258,7 +258,7 @@ jobs:
 
       - name: Upload screenshots
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ui-test-screenshots
           path: |
@@ -314,7 +314,7 @@ jobs:
             -output-dir coverage-html
 
       - name: Upload HTML coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-html-report
           path: coverage-html/

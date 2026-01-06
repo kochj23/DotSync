@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// iCloud Drive provider using NSFileCoordinator
+/// iCloud Drive provider using standard file system access
 class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
 
     private let fileManager = FileManager.default
@@ -16,17 +16,32 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
     override init(config: CloudProviderConfig, credentials: CloudCredentials?) {
         super.init(config: config, credentials: credentials)
 
-        // Get iCloud container URL
-        if let url = fileManager.url(forUbiquityContainerIdentifier: nil) {
-            containerURL = url.appendingPathComponent(config.folderPath)
+        // Use standard iCloud Drive path: ~/Library/Mobile Documents/com~apple~CloudDocs/
+        let homeDir = fileManager.homeDirectoryForCurrentUser
+        let iCloudDriveBase = homeDir
+            .appendingPathComponent("Library")
+            .appendingPathComponent("Mobile Documents")
+            .appendingPathComponent("com~apple~CloudDocs")
+
+        // User specifies folder name in config.bucket (e.g., "DotFiles")
+        let iCloudFolder = iCloudDriveBase.appendingPathComponent(config.bucket)
+
+        // Verify iCloud Drive is accessible
+        if fileManager.fileExists(atPath: iCloudDriveBase.path) {
+            containerURL = iCloudFolder
 
             // Create folder structure if needed
             try? fileManager.createDirectory(at: containerURL!, withIntermediateDirectories: true)
+            print("[iCloudProvider] Using iCloud Drive folder: \(iCloudFolder.path)")
+        } else {
+            print("[iCloudProvider] ⚠️ iCloud Drive not accessible at: \(iCloudDriveBase.path)")
         }
     }
 
     var isConfigured: Bool {
-        containerURL != nil
+        // Check if we have a valid container URL and it exists
+        guard let url = containerURL else { return false }
+        return fileManager.fileExists(atPath: url.path)
     }
 
     func upload(file: ConfigFile, data: Data) async throws {
@@ -39,30 +54,12 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
 
         // Create intermediate directories
         let parentDir = destinationURL.deletingLastPathComponent()
-        try? fileManager.createDirectory(at: parentDir, withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: parentDir, withIntermediateDirectories: true)
 
-        // Use NSFileCoordinator for iCloud operations
-        let coordinator = NSFileCoordinator(filePresenter: nil)
-        var coordinatorError: NSError?
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            coordinator.coordinate(writingItemAt: destinationURL, options: .forReplacing, error: &coordinatorError) { url in
-                do {
-                    try data.write(to: url, options: [.atomic])
-
-                    // Files in ubiquity container are automatically uploaded to iCloud
-                    // No need to manually set isUbiquitous
-
-                    continuation.resume()
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            if let error = coordinatorError {
-                continuation.resume(throwing: error)
-            }
-        }
+        // Write file to iCloud Drive (standard file operations)
+        // Files written to ~/Library/Mobile Documents/com~apple~CloudDocs/ are automatically synced
+        try data.write(to: destinationURL, options: [.atomic])
+        print("[iCloudProvider] ✅ Uploaded \(file.filename) to iCloud Drive")
     }
 
     func download(file: ConfigFile) async throws -> Data {
@@ -78,27 +75,10 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
             throw CloudStorageError.fileNotFound(storagePath)
         }
 
-        // Use NSFileCoordinator for safe iCloud reading
-        let coordinator = NSFileCoordinator(filePresenter: nil)
-        var coordinatorError: NSError?
-
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Data, Error>) in
-            coordinator.coordinate(readingItemAt: sourceURL, options: [], error: &coordinatorError) { url in
-                do {
-                    // Download if needed
-                    try? fileManager.startDownloadingUbiquitousItem(at: url)
-
-                    let data = try Data(contentsOf: url)
-                    continuation.resume(returning: data)
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            if let error = coordinatorError {
-                continuation.resume(throwing: error)
-            }
-        }
+        // Read file from iCloud Drive (standard file operations)
+        let data = try Data(contentsOf: sourceURL)
+        print("[iCloudProvider] ✅ Downloaded \(file.filename) from iCloud Drive")
+        return data
     }
 
     func listFiles() async throws -> [RemoteFile] {
@@ -110,33 +90,36 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
 
         // Ensure directory exists
         if !fileManager.fileExists(atPath: configsURL.path) {
+            try? fileManager.createDirectory(at: configsURL, withIntermediateDirectories: true)
             return []
         }
 
         var files: [RemoteFile] = []
 
-        // Recursively list all files (using Task to avoid async context warning)
-        await Task {
-            if let enumerator = fileManager.enumerator(at: configsURL,
-                                                       includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
-                                                       options: [.skipsHiddenFiles]) {
-                for case let fileURL as URL in enumerator {
-                    var isDirectory: ObjCBool = false
-                    guard fileManager.fileExists(atPath: fileURL.path, isDirectory: &isDirectory),
-                          !isDirectory.boolValue else {
-                        continue
-                    }
+        // Recursively list all files in iCloud Drive folder
+        guard let enumerator = fileManager.enumerator(
+            at: configsURL,
+            includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return []
+        }
 
-                    let resourceValues = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
-                    let lastModified = resourceValues?.contentModificationDate ?? Date()
-                    let size = Int64(resourceValues?.fileSize ?? 0)
-
-                    let relativePath = fileURL.path.replacingOccurrences(of: containerURL.path + "/", with: "")
-
-                    files.append(RemoteFile(path: relativePath, size: size, lastModified: lastModified, checksum: nil))
-                }
+        for case let fileURL as URL in enumerator {
+            var isDirectory: ObjCBool = false
+            guard fileManager.fileExists(atPath: fileURL.path, isDirectory: &isDirectory),
+                  !isDirectory.boolValue else {
+                continue
             }
-        }.value
+
+            let resourceValues = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
+            let lastModified = resourceValues?.contentModificationDate ?? Date()
+            let size = Int64(resourceValues?.fileSize ?? 0)
+
+            let relativePath = fileURL.path.replacingOccurrences(of: containerURL.path + "/", with: "")
+
+            files.append(RemoteFile(path: relativePath, size: size, lastModified: lastModified, checksum: nil))
+        }
 
         return files
     }
@@ -149,24 +132,9 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
         let storagePath = storagePath(for: file)
         let fileURL = containerURL.appendingPathComponent(storagePath)
 
-        // Use NSFileCoordinator for safe deletion
-        let coordinator = NSFileCoordinator(filePresenter: nil)
-        var coordinatorError: NSError?
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            coordinator.coordinate(writingItemAt: fileURL, options: .forDeleting, error: &coordinatorError) { url in
-                do {
-                    try fileManager.removeItem(at: url)
-                    continuation.resume()
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            if let error = coordinatorError {
-                continuation.resume(throwing: error)
-            }
-        }
+        // Delete file from iCloud Drive (standard file operations)
+        try fileManager.removeItem(at: fileURL)
+        print("[iCloudProvider] ✅ Deleted \(file.filename) from iCloud Drive")
     }
 
     func getMetadata(for file: ConfigFile) async throws -> RemoteFile? {
@@ -175,30 +143,33 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
     }
 
     func testConnection() async throws -> Bool {
-        guard containerURL != nil else {
+        guard let containerURL = containerURL else {
             throw CloudStorageError.notConfigured
         }
 
-        // Check if iCloud is available
-        guard fileManager.ubiquityIdentityToken != nil else {
-            throw CloudStorageError.authenticationFailed
+        // Check if iCloud Drive folder is accessible
+        guard fileManager.fileExists(atPath: containerURL.path) else {
+            throw CloudStorageError.networkError(
+                NSError(domain: "iCloudProvider", code: 1001,
+                       userInfo: [NSLocalizedDescriptionKey: "iCloud Drive folder not found at: \(containerURL.path)"])
+            )
         }
 
         // Try to create a test file
-        let testURL = containerURL!.appendingPathComponent(".dotsync-test")
+        let testURL = containerURL.appendingPathComponent(".dotsync-test")
         let testData = "test".data(using: .utf8)!
 
-        try testData.write(to: testURL)
-        try? fileManager.removeItem(at: testURL)
-
-        return true
+        do {
+            try testData.write(to: testURL, options: .atomic)
+            try? fileManager.removeItem(at: testURL)
+            print("[iCloudProvider] ✅ Test connection successful")
+            return true
+        } catch {
+            throw CloudStorageError.networkError(
+                NSError(domain: "iCloudProvider", code: 1002,
+                       userInfo: [NSLocalizedDescriptionKey: "Cannot write to iCloud Drive: \(error.localizedDescription)"])
+            )
+        }
     }
 
-    // MARK: - Helpers
-
-    private func getAccessToken() async throws -> String {
-        // iCloud doesn't use OAuth - it uses system authentication
-        // This method is not needed but kept for protocol consistency
-        return ""
-    }
 }

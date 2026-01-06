@@ -141,13 +141,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $syncEngine.showingConflictDialog) {
             if let conflict = syncEngine.currentConflict {
-                ConflictResolutionView(
-                    file: conflict.file,
-                    localContent: conflict.localContent,
-                    remoteContent: conflict.remoteContent,
-                    localDate: conflict.localDate,
-                    remoteDate: conflict.remoteDate
-                )
+                ConflictResolutionView(conflict: conflict)
             }
         }
     }

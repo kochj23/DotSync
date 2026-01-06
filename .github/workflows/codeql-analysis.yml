@@ -43,7 +43,7 @@ jobs:
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.0'
+          xcode-version: 'latest-stable'
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -63,10 +63,10 @@ jobs:
       - name: Build project for CodeQL analysis
         run: |
           xcodebuild clean build \
-            -project "DisneyGPT Mobile.xcodeproj" \
-            -scheme "DisneyGPT Mobile iOS" \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -project "Dot Sync.xcodeproj" \
+            -scheme "Dot Sync" \
+            -sdk macosx \
+            -destination 'platform=macOS' \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \

@@ -95,20 +95,17 @@ struct MenuBarView: View {
 
             Divider()
 
-            // Auto-sync toggle
-            Toggle("Auto-sync", isOn: Binding(
-                get: { UserDefaults.standard.bool(forKey: "autoSyncEnabled") },
-                set: { UserDefaults.standard.set($0, forKey: "autoSyncEnabled") }
-            ))
+            // Auto-sync toggle (DISABLED - crashes with FSEvents)
+            HStack {
+                Toggle("Auto-sync", isOn: .constant(false))
+                    .disabled(true)
+                Text("(Coming soon)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .onChange(of: UserDefaults.standard.bool(forKey: "autoSyncEnabled")) { enabled in
-                if enabled {
-                    startWatching()
-                } else {
-                    fileWatcher.stopWatching()
-                }
-            }
+            .help("File watching temporarily disabled due to stability issues")
 
             Divider()
 
@@ -225,11 +222,5 @@ struct MenuBarView: View {
         Task {
             await FileDiscoveryService.shared.scanHomeDirectory()
         }
-    }
-
-    private func startWatching() {
-        let files = FileDiscoveryService.shared.discoveredFiles.filter(\.isSafeToSync)
-        let filteredFiles = profileManager.filteredFiles(from: files)
-        fileWatcher.startWatching(files: filteredFiles)
     }
 }

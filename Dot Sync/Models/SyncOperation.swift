@@ -83,3 +83,53 @@ enum ConflictResolution {
         }
     }
 }
+
+/// Backup version information
+struct BackupVersion: Identifiable {
+    let id = UUID()
+    let path: String
+    let date: Date
+    let size: Int64
+
+    var sizeFormatted: String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: size)
+    }
+
+    var dateFormatted: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+}
+
+/// Result of three-way merge attempt
+struct ThreeWayMergeAttempt {
+    let success: Bool
+    let mergedContent: String?
+    let conflicts: [MergeConflict]
+    let reason: String
+
+    var canAutoApply: Bool {
+        success && mergedContent != nil
+    }
+}
+
+/// Individual merge conflict (for three-way merge)
+struct MergeConflict: Identifiable {
+    let id = UUID()
+    let lineNumber: Int
+    let ancestorLine: String
+    let localLine: String
+    let remoteLine: String
+
+    var description: String {
+        """
+        Line \(lineNumber):
+        Ancestor: \(ancestorLine.isEmpty ? "(empty)" : ancestorLine)
+        Local:    \(localLine.isEmpty ? "(empty)" : localLine)
+        Remote:   \(remoteLine.isEmpty ? "(empty)" : remoteLine)
+        """
+    }
+}

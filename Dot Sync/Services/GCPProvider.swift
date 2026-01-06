@@ -146,53 +146,53 @@ class GCPProvider: BaseCloudProvider, CloudStorageProtocol {
     }
 
     /// Get OAuth access token using service account
+    ///
+    /// NOTE: This is a simplified implementation. For production use, consider:
+    /// 1. Use the official Google Cloud SDK
+    /// 2. Implement proper RS256 JWT signing with a crypto library
+    /// 3. Or have users provide a pre-generated access token
+    ///
+    /// For now, this implementation expects the serviceAccountKey to contain
+    /// a pre-generated access token instead of the full service account JSON.
     private func getAccessToken() async throws -> String {
-        guard let serviceAccountJSON = credentials?.serviceAccountKey else {
+        guard let serviceAccountKey = credentials?.serviceAccountKey else {
             throw CloudStorageError.invalidCredentials
         }
 
-        // Parse service account JSON
-        guard let jsonData = serviceAccountJSON.data(using: .utf8),
-              let serviceAccount = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-              let clientEmail = serviceAccount["client_email"] as? String,
-              let privateKey = serviceAccount["private_key"] as? String else {
-            throw CloudStorageError.invalidCredentials
+        // Check if it looks like a JSON service account (starts with '{')
+        if serviceAccountKey.trimmingCharacters(in: .whitespaces).starts(with: "{") {
+            // Parse service account JSON to extract project info
+            guard let jsonData = serviceAccountKey.data(using: .utf8),
+                  let serviceAccount = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+                  let clientEmail = serviceAccount["client_email"] as? String,
+                  let privateKeyId = serviceAccount["private_key_id"] as? String else {
+                throw CloudStorageError.invalidCredentials
+            }
+
+            // For now, return a helpful error message
+            throw CloudStorageError.networkError(
+                NSError(domain: "GCPProvider", code: 1001,
+                       userInfo: [NSLocalizedDescriptionKey: """
+                       Full service account authentication requires RS256 JWT signing.
+
+                       Options:
+                       1. Use 'gcloud auth application-default print-access-token' to get a token
+                       2. Paste the access token as the 'Service Account Key' field
+                       3. Or use the official Google Cloud SDK
+
+                       Service Account: \(clientEmail)
+                       Key ID: \(privateKeyId)
+                       """])
+            )
         }
 
-        // Create JWT for Google OAuth
-        let header = [
-            "alg": "RS256",
-            "typ": "JWT"
-        ]
+        // Assume it's a pre-generated access token
+        // Access tokens start with "ya29." or similar
+        if !serviceAccountKey.isEmpty {
+            return serviceAccountKey
+        }
 
-        let now = Int(Date().timeIntervalSince1970)
-        let claims = [
-            "iss": clientEmail,
-            "scope": "https://www.googleapis.com/auth/devstorage.read_write",
-            "aud": "https://oauth2.googleapis.com/token",
-            "exp": now + 3600,
-            "iat": now
-        ] as [String : Any]
-
-        // Note: Full JWT signing would require crypto library for RS256
-        // For now, this is a simplified placeholder
-        // Production would use GoogleSignIn SDK or proper JWT library
-
-        // Get token from Google OAuth
-        let tokenURL = URL(string: "https://oauth2.googleapis.com/token")!
-        var request = URLRequest(url: tokenURL)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
-        // Note: This is simplified - full implementation requires RS256 JWT signing
-        let body = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=PLACEHOLDER_JWT"
-        request.httpBody = body.data(using: .utf8)
-
-        // For now, throw error indicating full implementation needed
-        throw CloudStorageError.networkError(
-            NSError(domain: "GCPProvider", code: 1001,
-                   userInfo: [NSLocalizedDescriptionKey: "GCP OAuth requires RS256 JWT signing - use Google SDK"])
-        )
+        throw CloudStorageError.invalidCredentials
     }
 
     private func parseGCSListResponse(_ data: Data) throws -> [RemoteFile] {

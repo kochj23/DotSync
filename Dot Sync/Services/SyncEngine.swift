@@ -18,6 +18,9 @@ class SyncEngine: ObservableObject {
     @Published var lastSyncDate: Date?
     @Published var previewOperations: [SyncOperation] = []
     @Published var isDryRun = false
+    @Published var conflictedFiles: [ConfigFile] = []
+    @Published var showingConflictDialog = false
+    @Published var currentConflict: ConflictInfo?
 
     private var cloudProvider: CloudStorageProtocol?
 
@@ -36,6 +39,12 @@ class SyncEngine: ObservableObject {
             cloudProvider = GCPProvider(config: provider, credentials: credentials)
         case .iCloud:
             cloudProvider = iCloudProvider(config: provider, credentials: nil)
+        case .nas:
+            cloudProvider = NASProvider(config: provider, credentials: credentials)
+        case .oneDrive:
+            cloudProvider = OneDriveProvider(config: provider, credentials: credentials)
+        case .googleDrive:
+            cloudProvider = GoogleDriveProvider(config: provider, credentials: credentials)
         }
     }
 
@@ -181,6 +190,9 @@ class SyncEngine: ObservableObject {
 
         // Re-analyze after sync
         try await analyzeSyncStatus(for: files)
+
+        // Check for conflicts across all files
+        try await checkForConflicts()
     }
 
     /// Upload individual file
@@ -224,14 +236,129 @@ class SyncEngine: ObservableObject {
         switch resolution {
         case .useLocal:
             try await sync(files: [file], direction: .upload)
+            removeFromConflicts(file)
         case .useRemote:
             try await sync(files: [file], direction: .download)
+            removeFromConflicts(file)
         case .skip:
+            // Keep in conflicted list for later resolution
+            NotificationService.shared.notify(
+                title: "Conflict Skipped",
+                body: "\(file.filename) - conflict will be shown again next sync"
+            )
             return
         case .merge:
-            // Manual merge - user must handle externally
-            throw NSError(domain: "SyncEngine", code: 1002,
-                         userInfo: [NSLocalizedDescriptionKey: "Manual merge not yet implemented"])
+            // User will manually merge - mark as in-progress
+            currentConflict = nil
+            showingConflictDialog = false
+            NotificationService.shared.notify(
+                title: "Manual Merge Required",
+                body: "\(file.filename) - merge the files and run sync again"
+            )
+            return
+        }
+
+        // Close dialog after resolution
+        currentConflict = nil
+        showingConflictDialog = false
+    }
+
+    /// Check for conflicts after sync/scan
+    func checkForConflicts() async throws {
+        guard let provider = cloudProvider else { return }
+
+        // Get remote file list
+        let remoteFiles = try await provider.listFiles()
+        let discoveredFiles = FileDiscoveryService.shared.discoveredFiles
+
+        var conflicts: [ConfigFile] = []
+        var conflictInfos: [ConflictInfo] = []
+
+        for file in discoveredFiles {
+            guard let remoteFile = remoteFiles.first(where: { $0.path.contains(file.filename) }) else {
+                continue
+            }
+
+            // Detect conflict: both modified since last sync
+            let isConflict = file.lastModified > remoteFile.lastModified &&
+                            remoteFile.lastModified > (lastSyncDate ?? .distantPast)
+
+            // Or same timestamp but different checksums
+            let sameTimeConflict = file.lastModified == remoteFile.lastModified &&
+                                  remoteFile.checksum != nil &&
+                                  remoteFile.checksum != file.checksum
+
+            if isConflict || sameTimeConflict {
+                conflicts.append(file)
+
+                // Load file contents for diff
+                if let localContent = try? String(contentsOfFile: file.path, encoding: .utf8),
+                   let remoteData = try? await provider.download(file: file),
+                   let remoteContent = String(data: remoteData, encoding: .utf8) {
+
+                    let info = ConflictInfo(
+                        file: file,
+                        localContent: localContent,
+                        remoteContent: remoteContent,
+                        localDate: file.lastModified,
+                        remoteDate: remoteFile.lastModified
+                    )
+                    conflictInfos.append(info)
+                }
+            }
+        }
+
+        conflictedFiles = conflicts
+
+        // Show first conflict if any found
+        if let firstConflict = conflictInfos.first {
+            currentConflict = firstConflict
+            showingConflictDialog = true
+
+            // Notify user
+            NotificationService.shared.notifyConflictDetected(
+                fileCount: conflicts.count,
+                fileName: firstConflict.file.filename
+            )
         }
     }
+
+    /// Remove file from conflict list
+    private func removeFromConflicts(_ file: ConfigFile) {
+        conflictedFiles.removeAll { $0.id == file.id }
+
+        // If more conflicts remain, show next one
+        if !conflictedFiles.isEmpty, let nextFile = conflictedFiles.first {
+            Task {
+                // Load next conflict
+                guard let provider = cloudProvider,
+                      let remoteFiles = try? await provider.listFiles(),
+                      let remoteFile = remoteFiles.first(where: { $0.path.contains(nextFile.filename) }),
+                      let localContent = try? String(contentsOfFile: nextFile.path, encoding: .utf8),
+                      let remoteData = try? await provider.download(file: nextFile),
+                      let remoteContent = String(data: remoteData, encoding: .utf8) else {
+                    return
+                }
+
+                currentConflict = ConflictInfo(
+                    file: nextFile,
+                    localContent: localContent,
+                    remoteContent: remoteContent,
+                    localDate: nextFile.lastModified,
+                    remoteDate: remoteFile.lastModified
+                )
+                showingConflictDialog = true
+            }
+        }
+    }
+}
+
+/// Information about a file conflict
+struct ConflictInfo: Identifiable {
+    let id = UUID()
+    let file: ConfigFile
+    let localContent: String
+    let remoteContent: String
+    let localDate: Date
+    let remoteDate: Date
 }

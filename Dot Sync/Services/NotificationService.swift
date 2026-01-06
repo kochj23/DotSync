@@ -69,6 +69,23 @@ class NotificationService {
         )
     }
 
+    /// Notify specific conflict detected with file name
+    func notifyConflictDetected(fileCount: Int, fileName: String) {
+        if fileCount == 1 {
+            notify(
+                title: "Conflict Detected",
+                body: "\(fileName) has conflicting changes - resolution required",
+                identifier: "conflict-\(fileName)"
+            )
+        } else {
+            notify(
+                title: "Multiple Conflicts Detected",
+                body: "\(fileCount) files have conflicts - starting with \(fileName)",
+                identifier: "conflicts-multiple"
+            )
+        }
+    }
+
     /// Notify sync failed
     func notifySyncFailed(error: String) {
         notify(

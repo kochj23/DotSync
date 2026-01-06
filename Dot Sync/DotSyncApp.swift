@@ -17,21 +17,9 @@ struct DotSyncApp: App {
         WindowGroup {
             ContentView()
                 .onAppear {
-                    // Delay file watcher startup to avoid initialization race conditions
-                    if UserDefaults.standard.bool(forKey: "autoSyncEnabled") {
-                        Task {
-                            // Wait for app to fully initialize
-                            try? await Task.sleep(for: .seconds(2))
-
-                            await FileDiscoveryService.shared.scanHomeDirectory()
-                            let files = FileDiscoveryService.shared.discoveredFiles.filter(\.isSafeToSync)
-
-                            // Only start watching if we have files
-                            if !files.isEmpty {
-                                await fileWatcher.startWatching(files: files)
-                            }
-                        }
-                    }
+                    // File watching disabled due to FSEvents crashes
+                    // App will work in manual sync mode only
+                    print("[App] Started in manual sync mode")
                 }
         }
         .commands {
@@ -48,18 +36,6 @@ struct DotSyncApp: App {
                     syncNow()
                 }
                 .keyboardShortcut("s", modifiers: [.command, .shift])
-
-                Divider()
-
-                Button("Start Watching Files") {
-                    startWatching()
-                }
-                .disabled(fileWatcher.isWatching)
-
-                Button("Stop Watching Files") {
-                    Task { await fileWatcher.stopWatching() }
-                }
-                .disabled(!fileWatcher.isWatching)
             }
         }
 
@@ -88,14 +64,6 @@ struct DotSyncApp: App {
             } catch {
                 print("[App] Sync error: \(error)")
             }
-        }
-    }
-
-    private func startWatching() {
-        Task {
-            let files = FileDiscoveryService.shared.discoveredFiles.filter(\.isSafeToSync)
-            let filteredFiles = ProfileManager.shared.filteredFiles(from: files)
-            await fileWatcher.startWatching(files: filteredFiles)
         }
     }
 }

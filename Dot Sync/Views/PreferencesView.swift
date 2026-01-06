@@ -54,8 +54,14 @@ struct GeneralPreferencesView: View {
     var body: some View {
         Form {
             Section("Sync Settings") {
-                Toggle("Enable auto-sync", isOn: $autoSyncEnabled)
-                    .help("Automatically sync when files change")
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle("Enable auto-sync", isOn: .constant(false))
+                        .disabled(true)
+
+                    Text("Auto-sync temporarily disabled due to file watching stability issues. Use manual sync for now.")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                }
 
                 HStack {
                     Text("Sync interval:")
@@ -63,7 +69,7 @@ struct GeneralPreferencesView: View {
                     Text("\(Int(syncInterval)) min")
                         .frame(width: 60, alignment: .trailing)
                 }
-                .disabled(!autoSyncEnabled)
+                .disabled(true)
             }
 
             Section("Notifications") {

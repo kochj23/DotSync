@@ -29,6 +29,21 @@ class FileWatcher: ObservableObject {
 
     /// Start watching files for changes
     func startWatching(files: [ConfigFile]) {
+        // DISABLED: FSEvents callback causes crashes with Swift/ObjC bridging
+        // TODO: Implement safer alternative (polling, DispatchSource, or FileManager notifications)
+        print("[FileWatcher] ⚠️ File watching temporarily disabled due to FSEvents stability issues")
+        print("[FileWatcher] Auto-sync will not work until alternative implementation is added")
+
+        NotificationService.shared.notify(
+            title: "Auto-Sync Disabled",
+            body: "File watching is temporarily disabled. Use manual sync instead."
+        )
+
+        isWatching = false
+        return
+
+        // ORIGINAL CODE BELOW - COMMENTED OUT DUE TO CRASHES
+        /*
         // Safety: Don't crash if already watching
         if isWatching {
             print("[FileWatcher] Already watching - stopping first")
@@ -45,109 +60,8 @@ class FileWatcher: ObservableObject {
 
         print("[FileWatcher] Starting watch for \(watchedPaths.count) files")
 
-        // Create FSEvents stream with error handling
-        var context = FSEventStreamContext(
-            version: 0,
-            info: Unmanaged.passUnretained(self).toOpaque(),
-            retain: nil,
-            release: nil,
-            copyDescription: nil
-        )
-
-        let callback: FSEventStreamCallback = { (
-            streamRef,
-            clientCallBackInfo,
-            numEvents,
-            eventPaths,
-            eventFlags,
-            eventIds
-        ) in
-            // Early returns for safety
-            guard let clientInfo = clientCallBackInfo else {
-                print("[FileWatcher] No client info")
-                return
-            }
-
-            // Validate event count
-            guard numEvents > 0 && numEvents < 10000 else {
-                print("[FileWatcher] Invalid event count: \(numEvents)")
-                return
-            }
-
-            // Safely extract watcher instance
-            let watcher = Unmanaged<FileWatcher>.fromOpaque(clientInfo).takeUnretainedValue()
-
-            // Safely extract paths from FSEvents
-            var paths: [String] = []
-
-            // Convert to NSArray and validate
-            let pathsArray = unsafeBitCast(eventPaths, to: NSArray.self)
-            let arrayCount = pathsArray.count
-
-            guard arrayCount > 0 && arrayCount >= numEvents else {
-                print("[FileWatcher] Array count (\(arrayCount)) < event count (\(numEvents))")
-                return
-            }
-
-            // Extract strings with type checking
-            for i in 0..<Int(numEvents) {
-                guard i < arrayCount else { break }
-
-                if let pathStr = pathsArray[i] as? String {
-                    paths.append(pathStr)
-                } else if let pathNSStr = pathsArray[i] as? NSString {
-                    paths.append(pathNSStr as String)
-                }
-            }
-
-            // Only process if we extracted valid paths
-            guard !paths.isEmpty else { return }
-
-            // Dispatch to main actor
-            Task { @MainActor in
-                watcher.handleFileChange(paths: paths)
-            }
-        }
-
-        // Create event stream
-        eventStream = FSEventStreamCreate(
-            nil,
-            callback,
-            &context,
-            watchedPaths as CFArray,
-            FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
-            0.5,  // Latency in seconds
-            UInt32(kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagWatchRoot)
-        )
-
-        guard let stream = eventStream else {
-            print("[FileWatcher] ❌ Failed to create event stream")
-            NotificationService.shared.notify(
-                title: "File Watching Disabled",
-                body: "Could not start file monitoring. Auto-sync will not work."
-            )
-            return
-        }
-
-        // Schedule on run loop
-        FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue)
-
-        // Start stream
-        guard FSEventStreamStart(stream) else {
-            print("[FileWatcher] ❌ Failed to start event stream")
-            FSEventStreamInvalidate(stream)
-            FSEventStreamRelease(stream)
-            eventStream = nil
-            return
-        }
-
-        isWatching = true
-        print("[FileWatcher] ✅ Started watching \(watchedPaths.count) files")
-
-        NotificationService.shared.notify(
-            title: "Auto-Sync Enabled",
-            body: "Watching \(watchedPaths.count) configuration files for changes"
-        )
+        // REST OF FUNCTION DISABLED - FSEvents causes crashes
+        */
     }
 
     /// Stop watching files

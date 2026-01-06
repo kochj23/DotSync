@@ -29,14 +29,23 @@ class FileWatcher: ObservableObject {
 
     /// Start watching files for changes
     func startWatching(files: [ConfigFile]) {
-        stopWatching()
+        // Safety: Don't crash if already watching
+        if isWatching {
+            print("[FileWatcher] Already watching - stopping first")
+            stopWatching()
+        }
 
         // Extract file paths
         watchedPaths = files.map { $0.path }
 
-        guard !watchedPaths.isEmpty else { return }
+        guard !watchedPaths.isEmpty else {
+            print("[FileWatcher] No files to watch")
+            return
+        }
 
-        // Create FSEvents stream
+        print("[FileWatcher] Starting watch for \(watchedPaths.count) files")
+
+        // Create FSEvents stream with error handling
         var context = FSEventStreamContext(
             version: 0,
             info: Unmanaged.passUnretained(self).toOpaque(),
@@ -53,16 +62,54 @@ class FileWatcher: ObservableObject {
             eventFlags,
             eventIds
         ) in
-            guard let clientInfo = clientCallBackInfo else { return }
+            // Early returns for safety
+            guard let clientInfo = clientCallBackInfo else {
+                print("[FileWatcher] No client info")
+                return
+            }
+
+            // Validate event count
+            guard numEvents > 0 && numEvents < 10000 else {
+                print("[FileWatcher] Invalid event count: \(numEvents)")
+                return
+            }
+
+            // Safely extract watcher instance
             let watcher = Unmanaged<FileWatcher>.fromOpaque(clientInfo).takeUnretainedValue()
 
-            let paths = unsafeBitCast(eventPaths, to: NSArray.self) as! [String]
+            // Safely extract paths from FSEvents
+            var paths: [String] = []
 
+            // Convert to NSArray and validate
+            let pathsArray = unsafeBitCast(eventPaths, to: NSArray.self)
+            let arrayCount = pathsArray.count
+
+            guard arrayCount > 0 && arrayCount >= numEvents else {
+                print("[FileWatcher] Array count (\(arrayCount)) < event count (\(numEvents))")
+                return
+            }
+
+            // Extract strings with type checking
+            for i in 0..<Int(numEvents) {
+                guard i < arrayCount else { break }
+
+                if let pathStr = pathsArray[i] as? String {
+                    paths.append(pathStr)
+                } else if let pathNSStr = pathsArray[i] as? NSString {
+                    paths.append(pathNSStr as String)
+                }
+            }
+
+            // Only process if we extracted valid paths
+            guard !paths.isEmpty else { return }
+
+            // Dispatch to main actor
             Task { @MainActor in
                 watcher.handleFileChange(paths: paths)
             }
         }
 
+        // Create event stream
         eventStream = FSEventStreamCreate(
             nil,
             callback,
@@ -74,21 +121,46 @@ class FileWatcher: ObservableObject {
         )
 
         guard let stream = eventStream else {
-            print("[FileWatcher] Failed to create event stream")
+            print("[FileWatcher] ❌ Failed to create event stream")
+            NotificationService.shared.notify(
+                title: "File Watching Disabled",
+                body: "Could not start file monitoring. Auto-sync will not work."
+            )
             return
         }
 
+        // Schedule on run loop
         FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue)
-        FSEventStreamStart(stream)
+
+        // Start stream
+        guard FSEventStreamStart(stream) else {
+            print("[FileWatcher] ❌ Failed to start event stream")
+            FSEventStreamInvalidate(stream)
+            FSEventStreamRelease(stream)
+            eventStream = nil
+            return
+        }
 
         isWatching = true
-        print("[FileWatcher] Started watching \(watchedPaths.count) files")
+        print("[FileWatcher] ✅ Started watching \(watchedPaths.count) files")
+
+        NotificationService.shared.notify(
+            title: "Auto-Sync Enabled",
+            body: "Watching \(watchedPaths.count) configuration files for changes"
+        )
     }
 
     /// Stop watching files
     func stopWatching() {
-        guard let stream = eventStream else { return }
+        guard let stream = eventStream else {
+            // Already stopped
+            isWatching = false
+            return
+        }
 
+        print("[FileWatcher] Stopping file watcher...")
+
+        // Stop stream safely
         FSEventStreamStop(stream)
         FSEventStreamInvalidate(stream)
         FSEventStreamRelease(stream)
@@ -100,7 +172,16 @@ class FileWatcher: ObservableObject {
         debounceTimers.values.forEach { $0.invalidate() }
         debounceTimers.removeAll()
 
-        print("[FileWatcher] Stopped watching")
+        print("[FileWatcher] ✅ Stopped watching")
+    }
+
+    deinit {
+        // Ensure cleanup happens even if not called explicitly
+        if let stream = eventStream {
+            FSEventStreamStop(stream)
+            FSEventStreamInvalidate(stream)
+            FSEventStreamRelease(stream)
+        }
     }
 
     // MARK: - Change Handling

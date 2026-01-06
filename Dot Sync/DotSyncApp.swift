@@ -17,12 +17,19 @@ struct DotSyncApp: App {
         WindowGroup {
             ContentView()
                 .onAppear {
-                    // Start file watcher if auto-sync is enabled
+                    // Delay file watcher startup to avoid initialization race conditions
                     if UserDefaults.standard.bool(forKey: "autoSyncEnabled") {
                         Task {
+                            // Wait for app to fully initialize
+                            try? await Task.sleep(for: .seconds(2))
+
                             await FileDiscoveryService.shared.scanHomeDirectory()
                             let files = FileDiscoveryService.shared.discoveredFiles.filter(\.isSafeToSync)
-                            await fileWatcher.startWatching(files: files)
+
+                            // Only start watching if we have files
+                            if !files.isEmpty {
+                                await fileWatcher.startWatching(files: files)
+                            }
                         }
                     }
                 }

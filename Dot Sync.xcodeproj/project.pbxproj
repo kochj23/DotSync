@@ -36,6 +36,7 @@
 		E280319E220B946672AD32A9 /* SecurityScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600F98EC1575548082806730 /* SecurityScanner.swift */; };
 		E6195E2A9A5FD481AC84616F /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 431F6569BAED0A60EFFDD235 /* NotificationService.swift */; };
 		F1C5BC05209C1DB178AE1B9D /* DotSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */; };
+		EC0F72804FAB0A2D933A5B76 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E6976BCA44C93D16459B2493 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -70,6 +71,7 @@
 		FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncOperation.swift; path = "Dot Sync/Models/SyncOperation.swift"; sourceTree = "<group>"; };
 		FE4E6D5395ACB8F8E9990811 /* ConfigFile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConfigFile.swift; path = "Dot Sync/Models/ConfigFile.swift"; sourceTree = "<group>"; };
 		FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileWatcher.swift; path = "Dot Sync/Services/FileWatcher.swift"; sourceTree = "<group>"; };
+		E6976BCA44C93D16459B2493 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

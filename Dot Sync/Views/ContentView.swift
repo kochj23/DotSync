@@ -23,6 +23,24 @@ struct ContentView: View {
         NavigationSplitView {
             // Left Sidebar - Categories
             List(selection: $selectedCategory) {
+                Section("Machine Configuration") {
+                    Picker("Machine Role", selection: $syncEngine.machineRole) {
+                        ForEach(MachineRole.allCases, id: \.self) { role in
+                            Text(role.rawValue).tag(role)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .onChange(of: syncEngine.machineRole) { newRole in
+                        syncEngine.setMachineRole(newRole)
+                    }
+                    .help(syncEngine.machineRole.description)
+
+                    Text(roleDescription)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.leading, 4)
+                }
+
                 Section("Profiles") {
                     Picker("Active Profile", selection: $profileManager.activeProfile) {
                         ForEach(profileManager.profiles) { profile in
@@ -120,7 +138,8 @@ struct ContentView: View {
                     selectedFiles: $selectedFiles,
                     dryRunEnabled: $dryRunEnabled,
                     onSync: performSync,
-                    onPreview: showPreview
+                    onPreview: showPreview,
+                    onPullOnly: performPullOnly
                 )
             } else {
                 EmptyStateView()
@@ -155,6 +174,15 @@ struct ContentView: View {
 
         // Filter by active profile
         return profileManager.filteredFiles(from: allFiles)
+    }
+
+    private var roleDescription: String {
+        switch syncEngine.machineRole {
+        case .master:
+            return "✓ Can upload and download configurations"
+        case .client:
+            return "⬇ Download only (read-only mode)"
+        }
     }
 
     private func fileCount(for category: ConfigCategory) -> Int {
@@ -196,6 +224,21 @@ struct ContentView: View {
                 showingPreview = true
             } catch {
                 print("[ContentView] Preview error: \(error)")
+            }
+        }
+    }
+
+    private func performPullOnly() {
+        Task {
+            let filesToPull = selectedFiles.compactMap { id in
+                discoveryService.discoveredFiles.first { $0.id == id }
+            }
+
+            do {
+                try await syncEngine.pullOnly(files: filesToPull)
+                print("[ContentView] ✅ Pull-only sync completed for \(filesToPull.count) files")
+            } catch {
+                print("[ContentView] ❌ Pull-only error: \(error)")
             }
         }
     }
@@ -283,6 +326,7 @@ struct FileListView: View {
     @Binding var dryRunEnabled: Bool
     let onSync: () -> Void
     let onPreview: () -> Void
+    let onPullOnly: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -329,6 +373,14 @@ struct FileListView: View {
                 }
                 .disabled(selectedFiles.isEmpty)
                 .help("Check sync status for selected files")
+
+                Button(action: onPullOnly) {
+                    Label("Pull Only", systemImage: "arrow.down.circle.fill")
+                }
+                .disabled(selectedFiles.isEmpty)
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+                .help("Download selected files from cloud (overwrite local)")
 
                 if dryRunEnabled {
                     Button(action: onPreview) {

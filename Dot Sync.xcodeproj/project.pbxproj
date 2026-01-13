@@ -7,16 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0CAE4459A23EBE9AE5165BB5 /* VisualMergeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D623CB0E9913C345E5CB6D /* VisualMergeEditor.swift */; };
-		D9911672B202B1F62FECE179 /* ThreeWayMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAE6B27A87E3C927958405C /* ThreeWayMerge.swift */; };
-		F1551C241987D192CCA76D79 /* SyncHooks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E6D3547E5F3CB0D21B3C48 /* SyncHooks.swift */; };
-		F0818A7CEE20D1F5B7FA44B0 /* MachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40352B5A8960A21E6C375B1 /* MachineInfo.swift */; };
-		4E0E103C7F1747B0872A381D /* NASProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */; };
-		1FFAEA8D03C04ADF8099CF3B /* OneDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */; };
-		D227E29E175A48FE80B9A86F /* GoogleDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */; };
 		03FC6F1F48B7CC091EDC1B24 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */; };
+		057B50B33C1501044C083650 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A208E2AA332D60055DFECE /* SyncProgressView.swift */; };
+		0CAE4459A23EBE9AE5165BB5 /* VisualMergeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D623CB0E9913C345E5CB6D /* VisualMergeEditor.swift */; };
 		0FAA6A82FE269F23D3E10201 /* S3Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E1D0DF1A2025FA215ED733 /* S3Provider.swift */; };
 		146B4B628E938BB1D72EED3E /* SyncOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */; };
+		1FFAEA8D03C04ADF8099CF3B /* OneDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */; };
 		20CD6DD0057A8FF97E0A0D39 /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */; };
 		214B4E3AB268855A5A154A99 /* ConflictResolutionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */; };
 		25C817A15F3CD570E10D773E /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */; };
@@ -26,30 +22,36 @@
 		40CE77F2818A95F6FFA55BDE /* FileDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */; };
 		434F935EA88C411AD023E7C2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233046D7912C359920BEEE9E /* ContentView.swift */; };
 		479336427B77AD6115EB733A /* SyncProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */; };
+		4E0E103C7F1747B0872A381D /* NASProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */; };
 		6D58A59E47400F7F1C3E82AB /* GCPProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29DAE9F80694C6C9F2D44C2 /* GCPProvider.swift */; };
+		7A24D528D70CBD002A65F090 /* SyncProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = E676A6E88B876914583AB00D /* SyncProgress.swift */; };
 		829CA412BBA2495CA664610B /* DiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED7EEBE906F3EA169140AFFF /* DiffView.swift */; };
+		8E3A29A0A97626C18A479DAD /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B596B474F5BA39E1ADC4F7DD /* StatusBarView.swift */; };
 		96311ED304A3F04479DC962C /* AWSHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5EAF6D6F5E11E19E08F270 /* AWSHelper.swift */; };
 		A67A3C0BB8A940C2A4F3A48E /* AzureBlobProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3264F32520FAF6597171AAF /* AzureBlobProvider.swift */; };
 		AE8D2A8B67954CA3746306DD /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA24C5E062E969DF72A5B30 /* PreferencesView.swift */; };
 		B0AE434724995039B786AA8A /* iCloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA65682BF8469AB50679C79 /* iCloudProvider.swift */; };
 		BC51E3EFCED70A395C3920DE /* CloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBAB5EF97069066D20EFD /* CloudProvider.swift */; };
+		D227E29E175A48FE80B9A86F /* GoogleDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */; };
+		D9911672B202B1F62FECE179 /* ThreeWayMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAE6B27A87E3C927958405C /* ThreeWayMerge.swift */; };
+		DFA5734C97090BFBD6418148 /* ToastNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233A344B0B1253890F4C1415 /* ToastNotificationView.swift */; };
 		E280319E220B946672AD32A9 /* SecurityScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600F98EC1575548082806730 /* SecurityScanner.swift */; };
 		E6195E2A9A5FD481AC84616F /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 431F6569BAED0A60EFFDD235 /* NotificationService.swift */; };
-		F1C5BC05209C1DB178AE1B9D /* DotSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */; };
 		EC0F72804FAB0A2D933A5B76 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E6976BCA44C93D16459B2493 /* Assets.xcassets */; };
+		F0818A7CEE20D1F5B7FA44B0 /* MachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40352B5A8960A21E6C375B1 /* MachineInfo.swift */; };
+		F1551C241987D192CCA76D79 /* SyncHooks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E6D3547E5F3CB0D21B3C48 /* SyncHooks.swift */; };
+		F1C5BC05209C1DB178AE1B9D /* DotSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C7D623CB0E9913C345E5CB6D /* VisualMergeEditor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VisualMergeEditor.swift; path = "Dot Sync/Views/VisualMergeEditor.swift"; sourceTree = "<group>"; };
-		2FAE6B27A87E3C927958405C /* ThreeWayMerge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThreeWayMerge.swift; path = "Dot Sync/Services/ThreeWayMerge.swift"; sourceTree = "<group>"; };
-		21E6D3547E5F3CB0D21B3C48 /* SyncHooks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncHooks.swift; path = "Dot Sync/Models/SyncHooks.swift"; sourceTree = "<group>"; };
-		D40352B5A8960A21E6C375B1 /* MachineInfo.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MachineInfo.swift; path = "Dot Sync/Models/MachineInfo.swift"; sourceTree = "<group>"; };
-		FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NASProvider.swift; path = "Dot Sync/Services/NASProvider.swift"; sourceTree = "<group>"; };
-		C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OneDriveProvider.swift; path = "Dot Sync/Services/OneDriveProvider.swift"; sourceTree = "<group>"; };
-		1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GoogleDriveProvider.swift; path = "Dot Sync/Services/GoogleDriveProvider.swift"; sourceTree = "<group>"; };
 		1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncProfile.swift; path = "Dot Sync/Models/SyncProfile.swift"; sourceTree = "<group>"; };
+		1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GoogleDriveProvider.swift; path = "Dot Sync/Services/GoogleDriveProvider.swift"; sourceTree = "<group>"; };
 		1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		21E6D3547E5F3CB0D21B3C48 /* SyncHooks.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncHooks.swift; path = "Dot Sync/Models/SyncHooks.swift"; sourceTree = "<group>"; };
+		22A208E2AA332D60055DFECE /* SyncProgressView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncProgressView.swift; path = "Dot Sync/Views/SyncProgressView.swift"; sourceTree = "<group>"; };
 		233046D7912C359920BEEE9E /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = "Dot Sync/Views/ContentView.swift"; sourceTree = "<group>"; };
+		233A344B0B1253890F4C1415 /* ToastNotificationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ToastNotificationView.swift; path = "Dot Sync/Views/ToastNotificationView.swift"; sourceTree = "<group>"; };
+		2FAE6B27A87E3C927958405C /* ThreeWayMerge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThreeWayMerge.swift; path = "Dot Sync/Services/ThreeWayMerge.swift"; sourceTree = "<group>"; };
 		431F6569BAED0A60EFFDD235 /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationService.swift; path = "Dot Sync/Services/NotificationService.swift"; sourceTree = "<group>"; };
 		5828FB9FE002309651E40457 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = "Dot Sync/Views/MenuBarView.swift"; sourceTree = "<group>"; };
 		5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileDiscoveryService.swift; path = "Dot Sync/Services/FileDiscoveryService.swift"; sourceTree = "<group>"; };
@@ -60,18 +62,24 @@
 		A2A37A693E8B2FB7977CB62F /* Dot Sync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dot Sync.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncEngine.swift; path = "Dot Sync/Services/SyncEngine.swift"; sourceTree = "<group>"; };
 		AE52C7804FB6056219A5475F /* CloudStorageProtocol.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CloudStorageProtocol.swift; path = "Dot Sync/Services/CloudStorageProtocol.swift"; sourceTree = "<group>"; };
+		B596B474F5BA39E1ADC4F7DD /* StatusBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatusBarView.swift; path = "Dot Sync/Views/StatusBarView.swift"; sourceTree = "<group>"; };
 		C5E1D0DF1A2025FA215ED733 /* S3Provider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = S3Provider.swift; path = "Dot Sync/Services/S3Provider.swift"; sourceTree = "<group>"; };
+		C7D623CB0E9913C345E5CB6D /* VisualMergeEditor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VisualMergeEditor.swift; path = "Dot Sync/Views/VisualMergeEditor.swift"; sourceTree = "<group>"; };
+		C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OneDriveProvider.swift; path = "Dot Sync/Services/OneDriveProvider.swift"; sourceTree = "<group>"; };
+		D40352B5A8960A21E6C375B1 /* MachineInfo.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MachineInfo.swift; path = "Dot Sync/Models/MachineInfo.swift"; sourceTree = "<group>"; };
 		DEA65682BF8469AB50679C79 /* iCloudProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = iCloudProvider.swift; path = "Dot Sync/Services/iCloudProvider.swift"; sourceTree = "<group>"; };
 		E29DAE9F80694C6C9F2D44C2 /* GCPProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GCPProvider.swift; path = "Dot Sync/Services/GCPProvider.swift"; sourceTree = "<group>"; };
 		E3264F32520FAF6597171AAF /* AzureBlobProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AzureBlobProvider.swift; path = "Dot Sync/Services/AzureBlobProvider.swift"; sourceTree = "<group>"; };
+		E676A6E88B876914583AB00D /* SyncProgress.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncProgress.swift; path = "Dot Sync/Models/SyncProgress.swift"; sourceTree = "<group>"; };
+		E6976BCA44C93D16459B2493 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Dot Sync/Assets.xcassets"; sourceTree = "<group>"; };
 		ECA24C5E062E969DF72A5B30 /* PreferencesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PreferencesView.swift; path = "Dot Sync/Views/PreferencesView.swift"; sourceTree = "<group>"; };
 		ED7EEBE906F3EA169140AFFF /* DiffView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiffView.swift; path = "Dot Sync/Views/DiffView.swift"; sourceTree = "<group>"; };
 		EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DotSyncApp.swift; path = "Dot Sync/DotSyncApp.swift"; sourceTree = "<group>"; };
 		F7EBBAB5EF97069066D20EFD /* CloudProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CloudProvider.swift; path = "Dot Sync/Models/CloudProvider.swift"; sourceTree = "<group>"; };
 		FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncOperation.swift; path = "Dot Sync/Models/SyncOperation.swift"; sourceTree = "<group>"; };
+		FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NASProvider.swift; path = "Dot Sync/Services/NASProvider.swift"; sourceTree = "<group>"; };
 		FE4E6D5395ACB8F8E9990811 /* ConfigFile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConfigFile.swift; path = "Dot Sync/Models/ConfigFile.swift"; sourceTree = "<group>"; };
 		FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileWatcher.swift; path = "Dot Sync/Services/FileWatcher.swift"; sourceTree = "<group>"; };
-		E6976BCA44C93D16459B2493 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Dot Sync/Assets.xcassets"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -114,6 +122,9 @@
 			isa = PBXGroup;
 			children = (
 				C7D623CB0E9913C345E5CB6D /* VisualMergeEditor.swift */,
+				233A344B0B1253890F4C1415 /* ToastNotificationView.swift */,
+				22A208E2AA332D60055DFECE /* SyncProgressView.swift */,
+				B596B474F5BA39E1ADC4F7DD /* StatusBarView.swift */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -191,6 +202,7 @@
 			children = (
 				21E6D3547E5F3CB0D21B3C48 /* SyncHooks.swift */,
 				D40352B5A8960A21E6C375B1 /* MachineInfo.swift */,
+				E676A6E88B876914583AB00D /* SyncProgress.swift */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -288,6 +300,10 @@
 				214B4E3AB268855A5A154A99 /* ConflictResolutionView.swift in Sources */,
 				3AB3A23128F64A6A67453B70 /* MenuBarView.swift in Sources */,
 				20CD6DD0057A8FF97E0A0D39 /* FileWatcher.swift in Sources */,
+				7A24D528D70CBD002A65F090 /* SyncProgress.swift in Sources */,
+				DFA5734C97090BFBD6418148 /* ToastNotificationView.swift in Sources */,
+				057B50B33C1501044C083650 /* SyncProgressView.swift in Sources */,
+				8E3A29A0A97626C18A479DAD /* StatusBarView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -50,6 +50,7 @@ struct ConfigFile: Identifiable, Codable, Hashable {
 
 /// Category of configuration file
 enum ConfigCategory: String, Codable, CaseIterable {
+    case everything = "Everything"
     case shell = "Shell"
     case git = "Git"
     case editor = "Editor"
@@ -63,6 +64,7 @@ enum ConfigCategory: String, Codable, CaseIterable {
 
     var icon: String {
         switch self {
+        case .everything: return "square.grid.2x2"
         case .shell: return "terminal"
         case .git: return "arrow.triangle.branch"
         case .editor: return "doc.text"
@@ -78,6 +80,7 @@ enum ConfigCategory: String, Codable, CaseIterable {
 
     var color: String {
         switch self {
+        case .everything: return "primary"
         case .shell: return "blue"
         case .git: return "orange"
         case .editor: return "purple"
@@ -89,6 +92,11 @@ enum ConfigCategory: String, Codable, CaseIterable {
         case .documentation: return "yellow"
         case .unknown: return "gray"
         }
+    }
+
+    /// Check if this is a special filter category
+    var isFilterCategory: Bool {
+        self == .everything
     }
 }
 

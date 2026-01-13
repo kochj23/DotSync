@@ -219,7 +219,63 @@ class FileDiscoveryService: ObservableObject {
 
     /// Get discovered files by category
     func files(for category: ConfigCategory) -> [ConfigFile] {
-        discoveredFiles.filter { $0.category == category }
+        if category == .everything {
+            return discoveredFiles
+        }
+        return discoveredFiles.filter { $0.category == category }
+    }
+
+    /// Categorize a filename (public method for remote file processing)
+    func categorize(filename: String) -> ConfigCategory {
+        // Check each category's patterns
+        for (category, patterns) in filePatterns {
+            for pattern in patterns {
+                // Simple pattern matching (exact or contains)
+                if filename == pattern || filename.hasPrefix(pattern.replacingOccurrences(of: "/", with: "")) {
+                    return category
+                }
+            }
+        }
+
+        // Check app preferences
+        for (category, prefFiles) in appPreferences {
+            if prefFiles.contains(filename) {
+                return category
+            }
+        }
+
+        // Special cases
+        if filename.hasSuffix(".md") {
+            return .documentation
+        }
+
+        return .unknown
+    }
+
+    /// Determine priority for a filename (public method for remote file processing)
+    func determinePriority(for filename: String, category: ConfigCategory) -> SyncPriority {
+        // Critical files
+        if [".zshrc", ".bashrc", ".bash_profile", ".gitconfig", ".vimrc"].contains(filename) {
+            return .critical
+        }
+
+        // Terminal profiles are high priority
+        if filename.contains("Terminal.plist") || filename.contains("iterm2.plist") {
+            return .high
+        }
+
+        // High priority by category
+        if [.shell, .git].contains(category) {
+            return .high
+        }
+
+        // Medium priority
+        if [.editor, .cloud, .claude].contains(category) {
+            return .medium
+        }
+
+        // Low priority for documentation
+        return .low
     }
 
     /// Get discovered files by priority

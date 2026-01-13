@@ -78,8 +78,8 @@ struct ContentView: View {
                     }
                 }
 
-                Section("Categories") {
-                    ForEach(ConfigCategory.allCases, id: \.self) { category in
+                Section(categoryHeader) {
+                    ForEach(categoriesForCurrentRole, id: \.self) { category in
                         CategoryRow(category: category, fileCount: fileCount(for: category))
                             .tag(category)
                     }
@@ -95,10 +95,18 @@ struct ContentView: View {
             .navigationSplitViewColumnWidth(min: 200, ideal: 250)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: { Task { await discoveryService.scanHomeDirectory() } }) {
-                        Label("Scan", systemImage: "arrow.clockwise")
+                    Button(action: {
+                        Task {
+                            if syncEngine.machineRole == .master {
+                                await discoveryService.scanHomeDirectory()
+                            } else {
+                                try? await syncEngine.fetchRemoteFiles()
+                            }
+                        }
+                    }) {
+                        Label(scanButtonLabel, systemImage: scanButtonIcon)
                     }
-                    .disabled(discoveryService.isScanning)
+                    .disabled(discoveryService.isScanning || syncEngine.isLoadingRemoteFiles)
                 }
 
                 ToolbarItem(placement: .automatic) {
@@ -132,25 +140,44 @@ struct ContentView: View {
         } detail: {
             // Right Panel - File List and Details
             if discoveryService.isScanning {
-                ProgressView("Scanning configuration files...")
+                ProgressView("Scanning local configuration files...")
+            } else if syncEngine.isLoadingRemoteFiles {
+                ProgressView("Loading files from cloud storage...")
             } else if let category = selectedCategory {
                 FileListView(
                     files: filteredFiles,
                     selectedFiles: $selectedFiles,
                     dryRunEnabled: $dryRunEnabled,
-                    onSync: performSync,
-                    onPreview: showPreview,
-                    onPullOnly: performPullOnly
+                    machineRole: syncEngine.machineRole,
+                    onPush: performPush,
+                    onPull: performPull,
+                    onPreview: showPreview
                 )
             } else {
-                EmptyStateView()
+                EmptyStateView(machineRole: syncEngine.machineRole)
             }
             }
             .onAppear {
                 Task {
-                    await discoveryService.scanHomeDirectory()
+                    // Load appropriate files based on machine role
+                    if syncEngine.machineRole == .master {
+                        await discoveryService.scanHomeDirectory()
+                    } else {
+                        try? await syncEngine.fetchRemoteFiles()
+                    }
+
                     // Check for conflicts on startup
                     try? await syncEngine.checkForConflicts()
+                }
+            }
+            .onChange(of: syncEngine.machineRole) { newRole in
+                // Reload files when role changes
+                Task {
+                    if newRole == .master {
+                        await discoveryService.scanHomeDirectory()
+                    } else {
+                        try? await syncEngine.fetchRemoteFiles()
+                    }
                 }
             }
             .sheet(isPresented: $showingPreferences) {
@@ -191,10 +218,19 @@ struct ContentView: View {
     }
 
     private var filteredFiles: [ConfigFile] {
+        // Master mode: show local files
+        // Client mode: show remote files
+        let sourceFiles = (syncEngine.machineRole == .master) ? discoveryService.discoveredFiles : syncEngine.remoteFiles
+
         let allFiles = if let category = selectedCategory {
-            discoveryService.files(for: category)
+            // If "everything" category, show all files
+            if category == .everything {
+                sourceFiles
+            } else {
+                sourceFiles.filter { $0.category == category }
+            }
         } else {
-            discoveryService.discoveredFiles
+            sourceFiles
         }
 
         // Filter by active profile
@@ -210,38 +246,103 @@ struct ContentView: View {
         }
     }
 
+    private var categoryHeader: String {
+        switch syncEngine.machineRole {
+        case .master:
+            return "Local Files by Category"
+        case .client:
+            return "Cloud Files by Category"
+        }
+    }
+
+    private var categoriesForCurrentRole: [ConfigCategory] {
+        // Always show "Everything" first, then actual categories (not "everything" again)
+        var categories: [ConfigCategory] = [.everything]
+        categories.append(contentsOf: ConfigCategory.allCases.filter { !$0.isFilterCategory })
+        return categories
+    }
+
+    private var scanButtonLabel: String {
+        switch syncEngine.machineRole {
+        case .master:
+            return "Scan Local"
+        case .client:
+            return "Fetch Cloud"
+        }
+    }
+
+    private var scanButtonIcon: String {
+        switch syncEngine.machineRole {
+        case .master:
+            return "arrow.clockwise"
+        case .client:
+            return "cloud.fill"
+        }
+    }
+
     private func fileCount(for category: ConfigCategory) -> Int {
-        let files = discoveryService.files(for: category)
+        // Use local or remote files based on machine role
+        let sourceFiles = (syncEngine.machineRole == .master) ? discoveryService.discoveredFiles : syncEngine.remoteFiles
+
+        let files = if category == .everything {
+            sourceFiles
+        } else {
+            sourceFiles.filter { $0.category == category }
+        }
+
         return profileManager.filteredFiles(from: files).count
     }
 
     private func priorityCount(for priority: SyncPriority) -> Int {
-        let files = discoveryService.files(for: priority)
+        // Use local or remote files based on machine role
+        let sourceFiles = (syncEngine.machineRole == .master) ? discoveryService.discoveredFiles : syncEngine.remoteFiles
+        let files = sourceFiles.filter { $0.syncPriority == priority }
         return profileManager.filteredFiles(from: files).count
     }
 
-    private func performSync() {
+    private func performPush() {
         Task {
-            let filesToSync = selectedFiles.compactMap { id in
-                discoveryService.discoveredFiles.first { $0.id == id }
+            let sourceFiles = (syncEngine.machineRole == .master) ? discoveryService.discoveredFiles : syncEngine.remoteFiles
+
+            let filesToPush = selectedFiles.compactMap { id in
+                sourceFiles.first { $0.id == id }
             }
 
             do {
-                try await syncEngine.sync(files: filesToSync, direction: .upload, dryRun: dryRunEnabled)
+                try await syncEngine.sync(files: filesToPush, direction: .upload, dryRun: dryRunEnabled)
 
                 if dryRunEnabled {
                     showingPreview = true
                 }
             } catch {
-                print("[ContentView] Sync error: \(error)")
+                print("[ContentView] Push error: \(error)")
+            }
+        }
+    }
+
+    private func performPull() {
+        Task {
+            let sourceFiles = (syncEngine.machineRole == .master) ? discoveryService.discoveredFiles : syncEngine.remoteFiles
+
+            let filesToPull = selectedFiles.compactMap { id in
+                sourceFiles.first { $0.id == id }
+            }
+
+            do {
+                try await syncEngine.pullOnly(files: filesToPull)
+                print("[ContentView] ✅ Pull completed for \(filesToPull.count) files")
+            } catch {
+                print("[ContentView] ❌ Pull error: \(error)")
             }
         }
     }
 
     private func showPreview() {
         Task {
+            let sourceFiles = (syncEngine.machineRole == .master) ? discoveryService.discoveredFiles : syncEngine.remoteFiles
+
             let filesToSync = selectedFiles.compactMap { id in
-                discoveryService.discoveredFiles.first { $0.id == id }
+                sourceFiles.first { $0.id == id }
             }
 
             do {
@@ -252,42 +353,57 @@ struct ContentView: View {
             }
         }
     }
-
-    private func performPullOnly() {
-        Task {
-            let filesToPull = selectedFiles.compactMap { id in
-                discoveryService.discoveredFiles.first { $0.id == id }
-            }
-
-            do {
-                try await syncEngine.pullOnly(files: filesToPull)
-                print("[ContentView] ✅ Pull-only sync completed for \(filesToPull.count) files")
-            } catch {
-                print("[ContentView] ❌ Pull-only error: \(error)")
-            }
-        }
-    }
 }
 
 // MARK: - Empty State
 
 struct EmptyStateView: View {
+    let machineRole: MachineRole
+
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "doc.text.magnifyingglass")
+            Image(systemName: iconName)
                 .font(.system(size: 64))
                 .foregroundColor(.secondary)
 
-            Text("Select a category to view config files")
+            Text(headerText)
                 .font(.title3)
                 .foregroundColor(.secondary)
 
-            Text("Dot Sync has scanned your home directory for configuration files")
+            Text(descriptionText)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
         }
         .padding()
+    }
+
+    private var iconName: String {
+        switch machineRole {
+        case .master:
+            return "folder.badge.gearshape"
+        case .client:
+            return "cloud.fill"
+        }
+    }
+
+    private var headerText: String {
+        switch machineRole {
+        case .master:
+            return "Select a category to view local files"
+        case .client:
+            return "Select a category to view cloud files"
+        }
+    }
+
+    private var descriptionText: String {
+        switch machineRole {
+        case .master:
+            return "Master mode: Manage local configuration files and push changes to cloud"
+        case .client:
+            return "Client mode: View available cloud files and pull them to this machine"
+        }
     }
 }
 
@@ -349,9 +465,10 @@ struct FileListView: View {
     let files: [ConfigFile]
     @Binding var selectedFiles: Set<UUID>
     @Binding var dryRunEnabled: Bool
-    let onSync: () -> Void
+    let machineRole: MachineRole
+    let onPush: () -> Void
+    let onPull: () -> Void
     let onPreview: () -> Void
-    let onPullOnly: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -399,24 +516,33 @@ struct FileListView: View {
                 .disabled(selectedFiles.isEmpty)
                 .help("Check sync status for selected files")
 
-                Button(action: onPullOnly) {
-                    Label("Pull Only", systemImage: "arrow.down.circle.fill")
-                }
-                .disabled(selectedFiles.isEmpty)
-                .buttonStyle(.borderedProminent)
-                .tint(.green)
-                .help("Download selected files from cloud (overwrite local)")
-
+                // Role-based action button
                 if dryRunEnabled {
                     Button(action: onPreview) {
-                        Label("Preview Sync", systemImage: "eye")
+                        Label("Preview", systemImage: "eye")
                     }
                     .disabled(selectedFiles.isEmpty)
                 } else {
-                    Button(action: onSync) {
-                        Label("Sync Selected", systemImage: "arrow.triangle.2.circlepath")
+                    // Master mode: Only show Push button
+                    if machineRole == .master {
+                        Button(action: onPush) {
+                            Label("Push to Cloud", systemImage: "arrow.up.circle.fill")
+                        }
+                        .disabled(selectedFiles.isEmpty)
+                        .buttonStyle(.borderedProminent)
+                        .tint(.blue)
+                        .help("Upload selected files to cloud storage")
                     }
-                    .disabled(selectedFiles.isEmpty)
+                    // Client mode: Only show Pull button
+                    else {
+                        Button(action: onPull) {
+                            Label("Pull from Cloud", systemImage: "arrow.down.circle.fill")
+                        }
+                        .disabled(selectedFiles.isEmpty)
+                        .buttonStyle(.borderedProminent)
+                        .tint(.green)
+                        .help("Download selected files from cloud storage")
+                    }
                 }
 
                 Button(action: { /* Open preferences */ }) {

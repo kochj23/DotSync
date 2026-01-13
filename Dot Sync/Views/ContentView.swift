@@ -154,7 +154,16 @@ struct ContentView: View {
                     onPreview: showPreview
                 )
             } else {
-                EmptyStateView(machineRole: syncEngine.machineRole)
+                EmptyStateView(
+                    machineRole: syncEngine.machineRole,
+                    isCloudConfigured: syncEngine.currentProvider != nil,
+                    onConfigureCloud: { showingPreferences = true },
+                    onFetchCloud: {
+                        Task {
+                            try? await syncEngine.fetchRemoteFiles()
+                        }
+                    }
+                )
             }
             }
             .onAppear {
@@ -359,27 +368,63 @@ struct ContentView: View {
 
 struct EmptyStateView: View {
     let machineRole: MachineRole
+    let isCloudConfigured: Bool
+    let onConfigureCloud: () -> Void
+    let onFetchCloud: () -> Void
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Image(systemName: iconName)
                 .font(.system(size: 64))
                 .foregroundColor(.secondary)
 
-            Text(headerText)
-                .font(.title3)
-                .foregroundColor(.secondary)
+            VStack(spacing: 12) {
+                Text(headerText)
+                    .font(.title3)
+                    .foregroundColor(.secondary)
 
-            Text(descriptionText)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+                Text(descriptionText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
+
+            // Show action buttons based on state
+            if machineRole == .client && !isCloudConfigured {
+                VStack(spacing: 12) {
+                    Button(action: onConfigureCloud) {
+                        Label("Configure Cloud Storage", systemImage: "cloud.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .help("Set up AWS, Azure, GCP, or iCloud to sync your configurations")
+
+                    Text("You need to configure cloud storage before you can view or download files")
+                        .font(.caption2)
+                        .foregroundColor(.orange)
+                }
+                .padding(.top, 8)
+            } else if machineRole == .client && isCloudConfigured {
+                Button(action: onFetchCloud) {
+                    Label("Fetch Cloud Files", systemImage: "arrow.down.circle.fill")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(.green)
+                .help("Load configuration files from cloud storage")
+                .padding(.top, 8)
+            }
         }
         .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var iconName: String {
+        if machineRole == .client && !isCloudConfigured {
+            return "exclamationmark.cloud"
+        }
+
         switch machineRole {
         case .master:
             return "folder.badge.gearshape"
@@ -389,20 +434,28 @@ struct EmptyStateView: View {
     }
 
     private var headerText: String {
+        if machineRole == .client && !isCloudConfigured {
+            return "Cloud Storage Not Configured"
+        }
+
         switch machineRole {
         case .master:
             return "Select a category to view local files"
         case .client:
-            return "Select a category to view cloud files"
+            return "Ready to fetch cloud files"
         }
     }
 
     private var descriptionText: String {
+        if machineRole == .client && !isCloudConfigured {
+            return "To view and download configuration files from the cloud, you first need to set up your cloud storage provider"
+        }
+
         switch machineRole {
         case .master:
             return "Master mode: Manage local configuration files and push changes to cloud"
         case .client:
-            return "Client mode: View available cloud files and pull them to this machine"
+            return "Client mode: Click 'Fetch Cloud Files' above or select 'Everything' on the left, then click the fetch button in the toolbar"
         }
     }
 }
@@ -477,6 +530,20 @@ struct FileListView: View {
                 Text("\(files.count) config files")
                     .font(.headline)
                 Spacer()
+
+                // Client mode: Add refresh cloud button
+                if machineRole == .client {
+                    Button(action: {
+                        Task {
+                            try? await SyncEngine.shared.fetchRemoteFiles()
+                        }
+                    }) {
+                        Label("Refresh Cloud", systemImage: "arrow.clockwise.cloud.fill")
+                    }
+                    .buttonStyle(.bordered)
+                    .help("Reload files from cloud storage")
+                }
+
                 Button("Select All") {
                     selectedFiles = Set(files.filter(\.isSafeToSync).map(\.id))
                 }

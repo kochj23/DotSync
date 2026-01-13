@@ -137,10 +137,11 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
         var files: [RemoteFile] = []
 
         // Recursively list all files in iCloud Drive folder
+        // NOTE: DO NOT skip hidden files - most config files start with dot (.)
         guard let enumerator = fileManager.enumerator(
             at: configsURL,
             includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
-            options: [.skipsHiddenFiles]
+            options: []  // No options - include hidden files
         ) else {
             return []
         }
@@ -149,6 +150,13 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
             var isDirectory: ObjCBool = false
             guard fileManager.fileExists(atPath: fileURL.path, isDirectory: &isDirectory),
                   !isDirectory.boolValue else {
+                continue
+            }
+
+            let filename = fileURL.lastPathComponent
+
+            // Skip system files and metadata
+            if filename == ".DS_Store" || filename.hasSuffix(".metadata.json") || filename.hasSuffix(".ancestor") {
                 continue
             }
 

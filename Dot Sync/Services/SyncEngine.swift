@@ -23,6 +23,10 @@ class SyncEngine: ObservableObject {
     @Published var currentConflict: ConflictInfo?
     @Published var machineRole: MachineRole = MachineInfo.getRole()
 
+    // UI Progress Tracking
+    @Published var syncProgress: SyncProgress?
+    @Published var toastMessages: [ToastMessage] = []
+
     private var cloudProvider: CloudStorageProtocol?
 
     // MARK: - Configuration
@@ -65,6 +69,25 @@ class SyncEngine: ObservableObject {
     /// Check if current machine can upload
     private func canUpload() -> Bool {
         return machineRole.canUpload
+    }
+
+    // MARK: - Toast Notifications
+
+    /// Show toast notification
+    func showToast(type: ToastType, title: String, message: String, duration: TimeInterval = 5.0) {
+        let toast = ToastMessage(type: type, title: title, message: message, duration: duration)
+        toastMessages.append(toast)
+
+        // Auto-dismiss after duration
+        Task {
+            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+            toastMessages.removeAll { $0.id == toast.id }
+        }
+    }
+
+    /// Dismiss toast
+    func dismissToast(_ toast: ToastMessage) {
+        toastMessages.removeAll { $0.id == toast.id }
     }
 
     // MARK: - Dry Run / Preview
@@ -186,12 +209,29 @@ class SyncEngine: ObservableObject {
         }
 
         isSyncing = true
-        defer { isSyncing = false }
+        defer {
+            isSyncing = false
+            syncProgress = nil
+        }
 
+        let startTime = Date()
         var successCount = 0
         var errorCount = 0
+        let totalBytes = files.reduce(0) { $0 + $1.size }
 
-        for file in files {
+        for (index, file) in files.enumerated() {
+            // Update progress
+            let operation: SyncProgress.SyncOperation = (direction == .upload) ? .uploading : .downloading
+            syncProgress = SyncProgress(
+                currentFile: file.filename,
+                currentIndex: index + 1,
+                totalFiles: files.count,
+                bytesTransferred: files.prefix(index).reduce(0) { $0 + $1.size },
+                totalBytes: totalBytes,
+                operation: operation,
+                startTime: startTime
+            )
+
             do {
                 switch direction {
                 case .upload:
@@ -206,11 +246,21 @@ class SyncEngine: ObservableObject {
             } catch {
                 print("[SyncEngine] Error syncing \(file.filename): \(error)")
                 errorCount += 1
+                showToast(type: .error, title: "Sync Failed", message: "Failed to sync \(file.filename)")
                 // Continue with other files
             }
         }
 
         lastSyncDate = Date()
+
+        // Show completion toast
+        if successCount > 0 && errorCount == 0 {
+            showToast(type: .success, title: "Sync Complete", message: "\(successCount) file(s) synced successfully")
+        } else if successCount > 0 && errorCount > 0 {
+            showToast(type: .warning, title: "Sync Completed with Errors", message: "\(successCount) succeeded, \(errorCount) failed")
+        } else if errorCount > 0 {
+            showToast(type: .error, title: "Sync Failed", message: "All \(errorCount) file(s) failed to sync")
+        }
 
         // Send notification
         if successCount > 0 {
@@ -236,16 +286,32 @@ class SyncEngine: ObservableObject {
         print("[SyncEngine] 📥 Starting pull-only sync for \(files.count) files")
 
         isSyncing = true
-        defer { isSyncing = false }
+        defer {
+            isSyncing = false
+            syncProgress = nil
+        }
 
+        let startTime = Date()
         var successCount = 0
         var errorCount = 0
         var skippedCount = 0
+        let totalBytes = files.reduce(0) { $0 + $1.size }
 
         // Get remote file list
         let remoteFiles = try await provider.listFiles()
 
-        for file in files {
+        for (index, file) in files.enumerated() {
+            // Update progress
+            syncProgress = SyncProgress(
+                currentFile: file.filename,
+                currentIndex: index + 1,
+                totalFiles: files.count,
+                bytesTransferred: files.prefix(index).reduce(0) { $0 + $1.size },
+                totalBytes: totalBytes,
+                operation: .downloading,
+                startTime: startTime
+            )
+
             do {
                 // Check if file exists on remote
                 guard remoteFiles.contains(where: { $0.path.contains(file.filename) }) else {
@@ -260,19 +326,26 @@ class SyncEngine: ObservableObject {
             } catch {
                 print("[SyncEngine] ❌ Error downloading \(file.filename): \(error)")
                 errorCount += 1
+                showToast(type: .error, title: "Download Failed", message: "Failed to download \(file.filename)")
                 // Continue with other files
             }
         }
 
         lastSyncDate = Date()
 
-        // Send notification with results
+        // Show completion toast
         var message = "\(successCount) file(s) downloaded"
         if skippedCount > 0 {
-            message += ", \(skippedCount) not found on remote"
+            message += ", \(skippedCount) not found"
         }
         if errorCount > 0 {
             message += ", \(errorCount) failed"
+        }
+
+        if errorCount == 0 {
+            showToast(type: .success, title: "Pull Complete", message: message)
+        } else {
+            showToast(type: .warning, title: "Pull Completed with Errors", message: message)
         }
 
         NotificationService.shared.notify(

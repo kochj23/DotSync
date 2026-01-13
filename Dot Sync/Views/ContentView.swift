@@ -20,7 +20,8 @@ struct ContentView: View {
     @State private var dryRunEnabled = false
 
     var body: some View {
-        NavigationSplitView {
+        VStack(spacing: 0) {
+            NavigationSplitView {
             // Left Sidebar - Categories
             List(selection: $selectedCategory) {
                 Section("Machine Configuration") {
@@ -144,24 +145,48 @@ struct ContentView: View {
             } else {
                 EmptyStateView()
             }
-        }
-        .onAppear {
-            Task {
-                await discoveryService.scanHomeDirectory()
-                // Check for conflicts on startup
-                try? await syncEngine.checkForConflicts()
             }
-        }
-        .sheet(isPresented: $showingPreferences) {
-            PreferencesView()
-        }
-        .sheet(isPresented: $showingPreview) {
-            PreviewOperationsView(operations: syncEngine.previewOperations)
-        }
-        .sheet(isPresented: $syncEngine.showingConflictDialog) {
-            if let conflict = syncEngine.currentConflict {
-                ConflictResolutionView(conflict: conflict)
+            .onAppear {
+                Task {
+                    await discoveryService.scanHomeDirectory()
+                    // Check for conflicts on startup
+                    try? await syncEngine.checkForConflicts()
+                }
             }
+            .sheet(isPresented: $showingPreferences) {
+                PreferencesView()
+            }
+            .sheet(isPresented: $showingPreview) {
+                PreviewOperationsView(operations: syncEngine.previewOperations)
+            }
+            .sheet(isPresented: $syncEngine.showingConflictDialog) {
+                if let conflict = syncEngine.currentConflict {
+                    ConflictResolutionView(conflict: conflict)
+                }
+            }
+
+            // Status bar at bottom
+            StatusBarView(
+                syncEngine: syncEngine,
+                discoveryService: discoveryService
+            )
+        }
+        .overlay(alignment: .top) {
+            // Toast notifications at top
+            ToastContainerView(
+                toasts: syncEngine.toastMessages,
+                onDismiss: { toast in
+                    syncEngine.dismissToast(toast)
+                }
+            )
+            .padding(.top, 8)
+        }
+        .overlay {
+            // Sync progress overlay (full screen)
+            SyncProgressFullScreenOverlay(
+                progress: syncEngine.syncProgress,
+                onCancel: nil // TODO: Implement cancel functionality
+            )
         }
     }
 

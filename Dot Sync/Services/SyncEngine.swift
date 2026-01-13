@@ -27,6 +27,10 @@ class SyncEngine: ObservableObject {
     @Published var syncProgress: SyncProgress?
     @Published var toastMessages: [ToastMessage] = []
 
+    // Remote file listing for client mode
+    @Published var remoteFiles: [ConfigFile] = []
+    @Published var isLoadingRemoteFiles = false
+
     private var cloudProvider: CloudStorageProtocol?
 
     // MARK: - Configuration
@@ -88,6 +92,75 @@ class SyncEngine: ObservableObject {
     /// Dismiss toast
     func dismissToast(_ toast: ToastMessage) {
         toastMessages.removeAll { $0.id == toast.id }
+    }
+
+    // MARK: - Remote File Management
+
+    /// Fetch and display remote files (for client mode)
+    func fetchRemoteFiles() async throws {
+        guard let provider = cloudProvider else {
+            throw CloudStorageError.notConfigured
+        }
+
+        isLoadingRemoteFiles = true
+        defer { isLoadingRemoteFiles = false }
+
+        print("[SyncEngine] 📡 Fetching remote files from cloud...")
+
+        do {
+            let remoteFileList = try await provider.listFiles()
+
+            // Convert RemoteFile to ConfigFile for display
+            let configFiles = remoteFileList.compactMap { remoteFile -> ConfigFile? in
+                // Extract filename from path
+                let filename = URL(fileURLWithPath: remoteFile.path).lastPathComponent
+
+                // Skip metadata files
+                if filename.hasSuffix(".metadata.json") || filename.hasSuffix(".ancestor") {
+                    return nil
+                }
+
+                // Determine category from filename
+                let category = FileDiscoveryService.shared.categorize(filename: filename)
+
+                // Determine priority
+                let priority = FileDiscoveryService.shared.determinePriority(for: filename, category: category)
+
+                // Create ConfigFile representation of remote file
+                return ConfigFile(
+                    path: remoteFile.path,
+                    relativePath: filename,
+                    filename: filename,
+                    category: category,
+                    size: remoteFile.size,
+                    lastModified: remoteFile.lastModified,
+                    checksum: remoteFile.checksum ?? "",
+                    isSafeToSync: true,
+                    syncPriority: priority,
+                    isDirectory: false
+                )
+            }
+
+            remoteFiles = configFiles
+            print("[SyncEngine] ✅ Loaded \(configFiles.count) remote files")
+
+            showToast(type: .success, title: "Cloud Files Loaded", message: "\(configFiles.count) configuration files found in cloud storage")
+        } catch {
+            print("[SyncEngine] ❌ Failed to fetch remote files: \(error)")
+            showToast(type: .error, title: "Failed to Load Cloud Files", message: error.localizedDescription)
+            throw error
+        }
+    }
+
+    /// Refresh remote files (with user feedback)
+    func refreshRemoteFiles() {
+        Task {
+            do {
+                try await fetchRemoteFiles()
+            } catch {
+                // Error already handled in fetchRemoteFiles
+            }
+        }
     }
 
     // MARK: - Dry Run / Preview

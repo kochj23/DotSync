@@ -81,9 +81,10 @@ class BaseCloudProvider {
 
     /// Build storage path for file
     func storagePath(for file: ConfigFile) -> String {
-        // dot-sync/configs/shell/zshrc
+        // Format: configs/{category}/{filename}
+        // No longer uses folderPath prefix - bucket/folder is already specified
         let category = file.category.rawValue.lowercased()
-        return "\(config.folderPath)/configs/\(category)/\(file.filename)"
+        return "configs/\(category)/\(file.filename)"
     }
 
     /// Create URLRequest with auth headers (subclasses override)

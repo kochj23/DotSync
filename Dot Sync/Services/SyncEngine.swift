@@ -21,6 +21,7 @@ class SyncEngine: ObservableObject {
     @Published var conflictedFiles: [ConfigFile] = []
     @Published var showingConflictDialog = false
     @Published var currentConflict: ConflictInfo?
+    @Published var machineRole: MachineRole = MachineInfo.getRole()
 
     private var cloudProvider: CloudStorageProtocol?
 
@@ -46,6 +47,24 @@ class SyncEngine: ObservableObject {
         case .googleDrive:
             cloudProvider = GoogleDriveProvider(config: provider, credentials: credentials)
         }
+    }
+
+    /// Set machine role (Master or Client)
+    func setMachineRole(_ role: MachineRole) {
+        machineRole = role
+        MachineInfo.setRole(role)
+        print("[SyncEngine] 🔧 Machine role updated to: \(role.rawValue)")
+
+        // Send notification
+        NotificationService.shared.notify(
+            title: "Machine Role Updated",
+            body: "This machine is now set as: \(role.rawValue)"
+        )
+    }
+
+    /// Check if current machine can upload
+    private func canUpload() -> Bool {
+        return machineRole.canUpload
     }
 
     // MARK: - Dry Run / Preview
@@ -153,6 +172,19 @@ class SyncEngine: ObservableObject {
             return
         }
 
+        // Enforce role-based restrictions
+        if direction == .upload && !canUpload() {
+            print("[SyncEngine] ⚠️ Upload blocked - machine is configured as Client (read-only)")
+            NotificationService.shared.notify(
+                title: "Upload Not Allowed",
+                body: "This machine is configured as Client (download only). Set as Master to enable uploads."
+            )
+            throw CloudStorageError.uploadFailed(
+                NSError(domain: "SyncEngine", code: 1002,
+                       userInfo: [NSLocalizedDescriptionKey: "Client machines cannot upload. Change role to Master in settings."])
+            )
+        }
+
         isSyncing = true
         defer { isSyncing = false }
 
@@ -193,6 +225,65 @@ class SyncEngine: ObservableObject {
 
         // Check for conflicts across all files
         try await checkForConflicts()
+    }
+
+    /// Pull-only sync: Download all files from cloud without uploading
+    func pullOnly(files: [ConfigFile]) async throws {
+        guard let provider = cloudProvider else {
+            throw CloudStorageError.notConfigured
+        }
+
+        print("[SyncEngine] 📥 Starting pull-only sync for \(files.count) files")
+
+        isSyncing = true
+        defer { isSyncing = false }
+
+        var successCount = 0
+        var errorCount = 0
+        var skippedCount = 0
+
+        // Get remote file list
+        let remoteFiles = try await provider.listFiles()
+
+        for file in files {
+            do {
+                // Check if file exists on remote
+                guard remoteFiles.contains(where: { $0.path.contains(file.filename) }) else {
+                    print("[SyncEngine] ⏭️ Skipping \(file.filename) - not found on remote")
+                    skippedCount += 1
+                    continue
+                }
+
+                // Always download, even if local is newer (pull-only mode)
+                try await downloadFile(file, using: provider)
+                successCount += 1
+            } catch {
+                print("[SyncEngine] ❌ Error downloading \(file.filename): \(error)")
+                errorCount += 1
+                // Continue with other files
+            }
+        }
+
+        lastSyncDate = Date()
+
+        // Send notification with results
+        var message = "\(successCount) file(s) downloaded"
+        if skippedCount > 0 {
+            message += ", \(skippedCount) not found on remote"
+        }
+        if errorCount > 0 {
+            message += ", \(errorCount) failed"
+        }
+
+        NotificationService.shared.notify(
+            title: "Pull-Only Sync Complete",
+            body: message
+        )
+
+        print("[SyncEngine] ✅ Pull-only sync complete: \(successCount) downloaded, \(skippedCount) skipped, \(errorCount) errors")
+
+        // Re-analyze after sync
+        try await analyzeSyncStatus(for: files)
     }
 
     /// Upload individual file

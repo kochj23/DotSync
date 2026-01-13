@@ -8,6 +8,29 @@
 import Foundation
 import SystemConfiguration
 
+/// Machine role in sync topology
+enum MachineRole: String, Codable, CaseIterable {
+    case master = "Master"
+    case client = "Client"
+
+    var description: String {
+        switch self {
+        case .master:
+            return "Master (can upload and download)"
+        case .client:
+            return "Client (download only)"
+        }
+    }
+
+    var canUpload: Bool {
+        self == .master
+    }
+
+    var canDownload: Bool {
+        true // Both master and client can download
+    }
+}
+
 /// Machine identification and tracking
 struct MachineInfo: Codable, Identifiable {
     let id: String // Unique machine ID
@@ -16,6 +39,7 @@ struct MachineInfo: Codable, Identifiable {
     let osVersion: String
     let lastSeen: Date
     let displayName: String // User-friendly name
+    var role: MachineRole // Master or Client role
 
     static var current: MachineInfo {
         let host = Host.current()
@@ -28,14 +52,31 @@ struct MachineInfo: Codable, Identifiable {
 
         let displayName = "\(hostname) (\(username))"
 
+        // Load role from UserDefaults (default to client for safety)
+        let roleString = UserDefaults.standard.string(forKey: "DotSync.MachineRole") ?? MachineRole.client.rawValue
+        let role = MachineRole(rawValue: roleString) ?? .client
+
         return MachineInfo(
             id: machineID,
             hostname: hostname,
             username: username,
             osVersion: osVersion,
             lastSeen: Date(),
-            displayName: displayName
+            displayName: displayName,
+            role: role
         )
+    }
+
+    /// Save machine role to persistent storage
+    static func setRole(_ role: MachineRole) {
+        UserDefaults.standard.set(role.rawValue, forKey: "DotSync.MachineRole")
+        print("[MachineInfo] 🔧 Machine role set to: \(role.rawValue)")
+    }
+
+    /// Get current machine role
+    static func getRole() -> MachineRole {
+        let roleString = UserDefaults.standard.string(forKey: "DotSync.MachineRole") ?? MachineRole.client.rawValue
+        return MachineRole(rawValue: roleString) ?? .client
     }
 
     /// Get hardware UUID for stable machine identification

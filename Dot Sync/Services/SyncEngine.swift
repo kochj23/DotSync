@@ -31,6 +31,10 @@ class SyncEngine: ObservableObject {
     @Published var remoteFiles: [ConfigFile] = []
     @Published var isLoadingRemoteFiles = false
 
+    // Failure tracking
+    @Published var currentFailureSummary: FailureSummary?
+    @Published var showingFailureSummary = false
+
     private var cloudProvider: CloudStorageProtocol?
 
     // MARK: - Configuration
@@ -120,15 +124,29 @@ class SyncEngine: ObservableObject {
                     return nil
                 }
 
-                // Determine category from filename
-                let category = FileDiscoveryService.shared.categorize(filename: filename)
+                // Extract category from remote path (e.g., "configs/shell/.zshrc" → "shell")
+                // Remote path format: configs/{category}/{filename}
+                let pathComponents = remoteFile.path.split(separator: "/")
+                let category: ConfigCategory
+                if pathComponents.count >= 2 && pathComponents[0] == "configs" {
+                    // Parse category from path
+                    let categoryName = String(pathComponents[1])
+                    category = ConfigCategory(rawValue: categoryName.capitalized) ?? .unknown
+                } else {
+                    // Fallback to filename-based categorization
+                    category = FileDiscoveryService.shared.categorize(filename: filename)
+                }
 
                 // Determine priority
                 let priority = FileDiscoveryService.shared.determinePriority(for: filename, category: category)
 
+                // Determine local home directory path for this file
+                let homeDir = FileManager.default.homeDirectoryForCurrentUser.path
+                let localPath = "\(homeDir)/\(filename)"
+
                 // Create ConfigFile representation of remote file
                 return ConfigFile(
-                    path: remoteFile.path,
+                    path: localPath,  // Local home directory path where file should be written
                     relativePath: filename,
                     filename: filename,
                     category: category,
@@ -368,6 +386,7 @@ class SyncEngine: ObservableObject {
         var successCount = 0
         var errorCount = 0
         var skippedCount = 0
+        var failures: [DownloadFailure] = []
         let totalBytes = files.reduce(0) { $0 + $1.size }
 
         // Get remote file list
@@ -399,6 +418,11 @@ class SyncEngine: ObservableObject {
             } catch {
                 print("[SyncEngine] ❌ Error downloading \(file.filename): \(error)")
                 errorCount += 1
+
+                // Track failure with detailed error info
+                let failure = DownloadFailure(filename: file.filename, filePath: file.path, error: error)
+                failures.append(failure)
+
                 showToast(type: .error, title: "Download Failed", message: "Failed to download \(file.filename)")
                 // Continue with other files
             }
@@ -419,6 +443,16 @@ class SyncEngine: ObservableObject {
             showToast(type: .success, title: "Pull Complete", message: message)
         } else {
             showToast(type: .warning, title: "Pull Completed with Errors", message: message)
+
+            // Show failure summary dialog if there were failures
+            if !failures.isEmpty {
+                currentFailureSummary = FailureSummary(
+                    totalFiles: files.count,
+                    successCount: successCount,
+                    failures: failures
+                )
+                showingFailureSummary = true
+            }
         }
 
         NotificationService.shared.notify(

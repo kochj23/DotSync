@@ -200,6 +200,11 @@ struct ContentView: View {
                     ConflictResolutionView(conflict: conflict)
                 }
             }
+            .sheet(isPresented: $syncEngine.showingFailureSummary) {
+                if let summary = syncEngine.currentFailureSummary {
+                    FailureSummaryView(summary: summary)
+                }
+            }
 
             // Status bar at bottom
             StatusBarView(

@@ -154,8 +154,8 @@ fi
 echo ""
 echo "📦 Installing Meslo Nerd Font (recommended for Powerlevel10k)..."
 if ! brew list --cask font-meslo-lg-nerd-font &> /dev/null; then
-    brew tap homebrew/cask-fonts
-    brew install --cask font-meslo-lg-nerd-font
+    echo "Installing Meslo Nerd Font..."
+    brew install font-meslo-lg-nerd-font
     print_status "Meslo Nerd Font installed"
     print_warning "Please set your terminal font to 'MesloLGS NF' in Terminal preferences"
 else

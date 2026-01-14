@@ -27,7 +27,9 @@
 		7A24D528D70CBD002A65F090 /* SyncProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = E676A6E88B876914583AB00D /* SyncProgress.swift */; };
 		829CA412BBA2495CA664610B /* DiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED7EEBE906F3EA169140AFFF /* DiffView.swift */; };
 		8E3A29A0A97626C18A479DAD /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B596B474F5BA39E1ADC4F7DD /* StatusBarView.swift */; };
+		8ECDAF212295D34B1D8D1F8F /* DownloadFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91E494F32A411FE6BB6DB220 /* DownloadFailure.swift */; };
 		96311ED304A3F04479DC962C /* AWSHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5EAF6D6F5E11E19E08F270 /* AWSHelper.swift */; };
+		9D9C07DE49C19546FD355CBF /* FailureSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B333CE26F2D6A43BC4C8AAA /* FailureSummaryView.swift */; };
 		A67A3C0BB8A940C2A4F3A48E /* AzureBlobProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3264F32520FAF6597171AAF /* AzureBlobProvider.swift */; };
 		AE8D2A8B67954CA3746306DD /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA24C5E062E969DF72A5B30 /* PreferencesView.swift */; };
 		B0AE434724995039B786AA8A /* iCloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA65682BF8469AB50679C79 /* iCloudProvider.swift */; };
@@ -54,9 +56,11 @@
 		2FAE6B27A87E3C927958405C /* ThreeWayMerge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThreeWayMerge.swift; path = "Dot Sync/Services/ThreeWayMerge.swift"; sourceTree = "<group>"; };
 		431F6569BAED0A60EFFDD235 /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationService.swift; path = "Dot Sync/Services/NotificationService.swift"; sourceTree = "<group>"; };
 		5828FB9FE002309651E40457 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = "Dot Sync/Views/MenuBarView.swift"; sourceTree = "<group>"; };
+		5B333CE26F2D6A43BC4C8AAA /* FailureSummaryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FailureSummaryView.swift; path = "Dot Sync/Views/FailureSummaryView.swift"; sourceTree = "<group>"; };
 		5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileDiscoveryService.swift; path = "Dot Sync/Services/FileDiscoveryService.swift"; sourceTree = "<group>"; };
 		600F98EC1575548082806730 /* SecurityScanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SecurityScanner.swift; path = "Dot Sync/Services/SecurityScanner.swift"; sourceTree = "<group>"; };
 		888F9F592E34263FFF24DA06 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Dot Sync/Info.plist"; sourceTree = "<group>"; };
+		91E494F32A411FE6BB6DB220 /* DownloadFailure.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DownloadFailure.swift; path = "Dot Sync/Models/DownloadFailure.swift"; sourceTree = "<group>"; };
 		9A5EAF6D6F5E11E19E08F270 /* AWSHelper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AWSHelper.swift; path = "Dot Sync/Services/AWSHelper.swift"; sourceTree = "<group>"; };
 		A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConflictResolutionView.swift; path = "Dot Sync/Views/ConflictResolutionView.swift"; sourceTree = "<group>"; };
 		A2A37A693E8B2FB7977CB62F /* Dot Sync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dot Sync.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -125,6 +129,7 @@
 				233A344B0B1253890F4C1415 /* ToastNotificationView.swift */,
 				22A208E2AA332D60055DFECE /* SyncProgressView.swift */,
 				B596B474F5BA39E1ADC4F7DD /* StatusBarView.swift */,
+				5B333CE26F2D6A43BC4C8AAA /* FailureSummaryView.swift */,
 			);
 			name = Views;
 			sourceTree = "<group>";
@@ -203,6 +208,7 @@
 				21E6D3547E5F3CB0D21B3C48 /* SyncHooks.swift */,
 				D40352B5A8960A21E6C375B1 /* MachineInfo.swift */,
 				E676A6E88B876914583AB00D /* SyncProgress.swift */,
+				91E494F32A411FE6BB6DB220 /* DownloadFailure.swift */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -304,6 +310,8 @@
 				DFA5734C97090BFBD6418148 /* ToastNotificationView.swift in Sources */,
 				057B50B33C1501044C083650 /* SyncProgressView.swift in Sources */,
 				8E3A29A0A97626C18A479DAD /* StatusBarView.swift in Sources */,
+				8ECDAF212295D34B1D8D1F8F /* DownloadFailure.swift in Sources */,
+				9D9C07DE49C19546FD355CBF /* FailureSummaryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -370,7 +378,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Dot Sync/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -388,7 +396,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Dot Sync/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";

@@ -107,11 +107,24 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
             throw CloudStorageError.notConfigured
         }
 
-        let storagePath = storagePath(for: file)
+        // For remote files (from listing), use the exact path from the remote
+        // For local files being synced, construct the path using storagePath
+        let storagePath: String
+        if file.path.hasPrefix("configs/") || file.path.contains("/configs/") {
+            // Remote file - use the path as-is from the remote listing
+            storagePath = file.path
+        } else {
+            // Local file being synced - construct path based on category
+            storagePath = self.storagePath(for: file)
+        }
+
         let sourceURL = containerURL.appendingPathComponent(storagePath)
 
         // Check if file exists
         guard fileManager.fileExists(atPath: sourceURL.path) else {
+            print("[iCloudProvider] ❌ File not found at: \(sourceURL.path)")
+            print("[iCloudProvider] ❌ Tried storage path: \(storagePath)")
+            print("[iCloudProvider] ❌ Original file.path: \(file.path)")
             throw CloudStorageError.fileNotFound(storagePath)
         }
 

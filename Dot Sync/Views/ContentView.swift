@@ -20,8 +20,12 @@ struct ContentView: View {
     @State private var dryRunEnabled = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            NavigationSplitView {
+        ZStack {
+            // Glassmorphic background
+            GlassmorphicBackground()
+
+            VStack(spacing: 0) {
+                NavigationSplitView {
             // Left Sidebar - Categories
             List(selection: $selectedCategory) {
                 Section("Machine Configuration") {
@@ -38,7 +42,7 @@ struct ContentView: View {
 
                     Text(roleDescription)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(ModernColors.textSecondary)
                         .padding(.leading, 4)
                 }
 
@@ -228,6 +232,7 @@ struct ContentView: View {
                 progress: syncEngine.syncProgress,
                 onCancel: nil // TODO: Implement cancel functionality
             )
+        }
         }
     }
 

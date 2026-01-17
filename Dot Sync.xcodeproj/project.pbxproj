@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4439637E305D4F8FAA565C69 /* ModernDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7897DE37E627436A8EDD0192 /* ModernDesign.swift */; };
 		03FC6F1F48B7CC091EDC1B24 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */; };
 		057B50B33C1501044C083650 /* SyncProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A208E2AA332D60055DFECE /* SyncProgressView.swift */; };
 		0CAE4459A23EBE9AE5165BB5 /* VisualMergeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D623CB0E9913C345E5CB6D /* VisualMergeEditor.swift */; };
@@ -46,6 +47,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		7897DE37E627436A8EDD0192 /* ModernDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dot Sync/ModernDesign.swift"; sourceTree = "<group>"; };
 		1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncProfile.swift; path = "Dot Sync/Models/SyncProfile.swift"; sourceTree = "<group>"; };
 		1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GoogleDriveProvider.swift; path = "Dot Sync/Services/GoogleDriveProvider.swift"; sourceTree = "<group>"; };
 		1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
@@ -101,6 +103,7 @@
 		4E9A7D94E53AD730971CA2C7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				7897DE37E627436A8EDD0192 /* ModernDesign.swift */,
 				50ABD500CD73BE4CC9467B81 /* OS X */,
 			);
 			name = Frameworks;
@@ -312,7 +315,8 @@
 				8E3A29A0A97626C18A479DAD /* StatusBarView.swift in Sources */,
 				8ECDAF212295D34B1D8D1F8F /* DownloadFailure.swift in Sources */,
 				9D9C07DE49C19546FD355CBF /* FailureSummaryView.swift in Sources */,
-			);
+			
+				4439637E305D4F8FAA565C69 /* ModernDesign.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */

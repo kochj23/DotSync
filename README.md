@@ -1,37 +1,62 @@
-# Dot Sync
+# Dot Sync v1.2.0
 
 ![Platform](https://img.shields.io/badge/platform-macOS%2013.0%2B-lightgrey)
 ![Swift](https://img.shields.io/badge/swift-5.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-> Smart dotfiles synchronization across machines using cloud storage
+> Smart dotfiles synchronization across machines using cloud storage with real-time file watching
 
 ---
 
-## Overview
+## What is Dot Sync?
 
-**Dot Sync** is a macOS application for syncing configuration files (dotfiles) across multiple machines using cloud storage. Unlike iCloud which handles Documents and Desktop, Dot Sync focuses on developer configuration files that iCloud doesn't touch.
+Dot Sync is a macOS application for syncing configuration files (dotfiles) across multiple machines using cloud storage. Unlike iCloud which handles Documents and Desktop, Dot Sync focuses on developer configuration files that iCloud doesn't touch. Think of it as version control for your dotfiles with conflict detection, security scanning, and automatic synchronization.
 
-### What It Syncs
+**Perfect For:**
+- **Developers**: Keep shell configs, editor settings, and tool configs synchronized
+- **DevOps Engineers**: Sync cloud CLI configurations across workstations
+- **System Administrators**: Maintain consistent environments across multiple Macs
+- **Power Users**: Never lose your carefully crafted configurations again
 
-Think of it as version control for your dotfiles with conflict detection:
-- Shell configs (.zshrc, .bashrc, .bash_profile)
-- **Terminal profiles** (~/Library/Preferences/com.apple.Terminal.plist) - **NEW!**
-- **iTerm2 profiles** (~/Library/Preferences/com.googlecode.iterm2.plist) - **NEW!**
-- Git configuration (.gitconfig)
-- Editor configs (.vimrc, .vim/, VS Code settings)
-- Cloud CLI configs (.aws/config, .azure/config, gcloud/)
-- Docker settings (.docker/config.json)
-- Claude Code settings (.claude/CLAUDE.md, .claude/settings.json)
-- Custom tool configs (oh-my-zsh/custom/, .config/*)
+**Key Features:**
+- **Real-Time Sync**: Automatic file watching with DispatchSource
+- **Smart Categorization**: Groups configs by type (shell, git, editor, cloud)
+- **Security First**: Automatic credential detection and exclusion
+- **Conflict Detection**: Compare local vs remote timestamps
+- **Multi-Cloud Support**: AWS S3, Azure, GCP, iCloud Drive, S3-compatible providers
 
-### What It DOESN'T Sync (Security)
+---
 
-- SSH private keys (id_rsa, id_ed25519)
-- Credential files (.aws/credentials, .docker with auth tokens)
-- Command history (.bash_history, .zsh_history)
-- Cache directories (.cache/, .npm/)
-- Binary files and models
+## What's New in v1.2.0 (January 2026)
+
+### 🚀 FileWatcher Rewrite (Complete Stability Fix)
+**Real-time file monitoring with DispatchSource:**
+
+- **DispatchSource Implementation**: Modern file system event monitoring
+- **Eliminates Crashes**: Previous FSEvents implementation caused instability
+- **Debouncing**: 5-second delay prevents excessive sync operations
+- **Memory Safe**: Proper file descriptor cleanup and resource management
+- **Background Sync**: Automatic sync when files change
+- **Optional Manual Mode**: User-controlled sync for maximum control
+
+**Technical Improvements:**
+```swift
+// Old: FSEvents (unstable)
+let stream = FSEventStreamCreate(...)  // Prone to crashes
+
+// New: DispatchSource (rock solid)
+let source = DispatchSource.makeFileSystemObjectSource(
+    fileDescriptor: fd,
+    eventMask: [.write, .extend, .attrib],
+    queue: DispatchQueue.global()
+)
+```
+
+**Benefits:**
+- Zero crashes from file watching
+- Lower CPU usage (event-driven vs polling)
+- Proper cleanup when app quits
+- Works reliably with thousands of config changes
 
 ---
 
@@ -39,25 +64,67 @@ Think of it as version control for your dotfiles with conflict detection:
 
 ### Core Functionality
 - ✅ **Automatic Discovery** - Scans home directory for config files
-- ✅ **Smart Categorization** - Groups by type (shell, git, editor, cloud)
-- ✅ **Priority Ranking** - Critical, high, medium, low
+- ✅ **Smart Categorization** - Groups by type (shell, git, editor, cloud, terminal)
+- ✅ **Priority Ranking** - Critical, high, medium, low importance
 - ✅ **Security Scanning** - Detects and excludes files with credentials
 - ✅ **Conflict Detection** - Compares local vs remote timestamps
 - ✅ **Bidirectional Sync** - Upload or download as needed
 - ✅ **Auto-Sync (v1.2.0+)** - Real-time file watching with DispatchSource
-  - Monitors config files for changes using DispatchSource file system events
+  - Monitors config files for changes using DispatchSource
   - Replaces previous FSEvents implementation (eliminated crashes)
-  - Debouncing with 5-second delay to prevent excessive syncs
+  - Debouncing with 5-second delay prevents excessive syncs
   - Automatic background sync when files change
   - Memory-safe with proper file descriptor cleanup
-  - Optional: Manual sync mode for user-controlled operations
+  - Optional manual sync mode for user-controlled operations
+
+### File Discovery
+**Automatically Detected Config Files:**
+
+**Shell Configs (Critical Priority):**
+- `.zshrc` - Zsh configuration
+- `.bashrc` - Bash configuration
+- `.bash_profile` - Bash profile
+- `.profile` - Universal shell profile
+- `.p10k.zsh` - Powerlevel10k theme
+
+**Terminal Profiles (High Priority):**
+- `~/Library/Preferences/com.apple.Terminal.plist` - Terminal.app profiles, colors, fonts
+- `~/Library/Preferences/com.googlecode.iterm2.plist` - iTerm2 profiles (if installed)
+
+**Version Control (Critical Priority):**
+- `.gitconfig` - Git global settings
+- `.gitignore_global` - Global git ignore patterns
+
+**Editors (High Priority):**
+- `.vimrc` - Vim configuration
+- `.vim/` - Vim plugins and settings
+- `.config/Code/User/settings.json` - VS Code settings
+- `.config/nvim/` - Neovim configuration
+
+**Cloud CLIs (High Priority):**
+- `.aws/config` - AWS CLI (credentials excluded)
+- `.azure/config` - Azure CLI configuration
+- `.config/gcloud/` - Google Cloud SDK settings
+
+**Development Tools (Medium Priority):**
+- `.docker/config.json` - Docker configuration (auth removed)
+- `.npmrc` - npm configuration
+- `.config/gh/` - GitHub CLI settings
+- `.oh-my-zsh/custom/` - Zsh customizations
+- `.config/` - Various tool configs
+
+**Documentation (Low Priority):**
+- `.aws_cheatsheet.md` - AWS reference
+- `.azure_cheatsheet.md` - Azure reference
+- `.gcp_cheatsheet.md` - GCP reference
+- `.zsh_cheatsheet.md` - Shell reference
 
 ### Cloud Storage Support
-- ✅ AWS S3
-- ✅ Azure Blob Storage
-- ✅ Google Cloud Storage
-- ✅ iCloud Drive
-- ✅ S3-Compatible (MinIO, DigitalOcean Spaces, Wasabi)
+- ✅ **AWS S3** - Amazon Simple Storage Service
+- ✅ **Azure Blob Storage** - Microsoft Azure cloud storage
+- ✅ **Google Cloud Storage** - GCP bucket storage
+- ✅ **iCloud Drive** - Apple's cloud storage
+- ✅ **S3-Compatible** - MinIO, DigitalOcean Spaces, Wasabi, Backblaze B2
 
 ### Security Features
 - ✅ **Credential Scanning** - Automatic detection of API keys, tokens, passwords
@@ -65,130 +132,393 @@ Think of it as version control for your dotfiles with conflict detection:
 - ✅ **Pattern Matching** - Regex-based secret detection
 - ✅ **Backup Before Sync** - Creates .backup files before overwriting
 - ✅ **Encrypted Storage** - Optional encryption for cloud data
+- ✅ **Audit Logging** - History of all sync operations
+
+**Automatically Excluded (Security):**
+- SSH private keys (id_rsa, id_ed25519, etc.)
+- AWS credentials file (.aws/credentials)
+- Docker auth tokens
+- npm authentication tokens
+- Command history files (.bash_history, .zsh_history)
+- Any files matching credential patterns
+
+**Pattern Detection:**
+```
+Detected Secrets:
+- Stripe API keys (sk_live_, sk_test_)
+- AWS keys (AKIA...)
+- Bearer tokens
+- JWT tokens (eyJ...)
+- Hardcoded passwords
+- OAuth client secrets
+```
 
 ### User Experience
 - ✅ **Native SwiftUI Interface** - Modern macOS design
-- ✅ **File Browser** - Categorized tree view
+- ✅ **File Browser** - Categorized tree view with icons
 - ✅ **Sync Status Indicators** - Visual state for each file
+  - 🟢 **Synced** - Files match
+  - 🔵 **Local Newer** - Your copy is newer
+  - 🟠 **Remote Newer** - Cloud copy is newer
+  - 🔴 **Conflict** - Both changed, need resolution
+  - 🟣 **Not on Remote** - New file to upload
 - ✅ **Conflict Resolution** - Side-by-side diff (coming soon)
 - ✅ **Progress Tracking** - Real-time sync progress
 - ✅ **Audit Log** - History of all sync operations
+- ✅ **Notifications** - macOS notifications for sync events
+
+---
+
+## Security
+
+### Privacy & Data Protection
+
+**What Gets Synced:**
+- Shell configuration files
+- Terminal profiles and preferences
+- Editor settings
+- Version control configurations
+- Cloud CLI settings (credentials removed)
+- Development tool configs
+
+**What NEVER Gets Synced:**
+- SSH private keys
+- Credential files (.aws/credentials, .npmrc with auth)
+- Command history
+- Cache directories
+- Binary files and models
+- Files containing detected secrets
+
+### Security Scanning
+
+**Automatic Detection of:**
+- API keys (AWS, Stripe, OpenAI, etc.)
+- Authentication tokens
+- JWT tokens
+- Bearer tokens
+- SSH keys
+- Passwords in plain text
+- OAuth secrets
+- Database connection strings with passwords
+
+**Sanitization:**
+- Removes credential helpers from .gitconfig
+- Strips auth tokens from Docker config
+- Removes AWS credentials from config files
+- Redacts passwords from configuration
+
+### Data Storage Security
+
+- **Credentials**: Stored in macOS Keychain (not UserDefaults)
+- **Cloud Data**: Optional AES-256 encryption
+- **Audit Log**: All operations logged with timestamps
+- **Backups**: .backup files created before any overwrite
+- **No Telemetry**: Zero data sent to external services
+
+---
+
+## Requirements
+
+### System Requirements
+- **macOS 13.0 (Ventura) or later**
+- **Xcode 15.0+** (for building from source)
+- **Cloud storage account** (AWS, Azure, GCP, or iCloud)
+
+### Network Requirements
+- Internet connection for cloud sync
+- Sufficient upload/download bandwidth for file sizes
+
+### Dependencies
+**None!** Dot Sync uses only built-in macOS frameworks:
+- SwiftUI (user interface)
+- Foundation (core functionality)
+- CryptoKit (encryption)
+- Combine (reactive programming)
 
 ---
 
 ## Installation
 
-### Requirements
+### Option 1: Pre-built Binary (Recommended)
 
-- **macOS 13.0 (Ventura) or later**
-- **Xcode 15.0+** (for building from source)
-- **Cloud storage account** (AWS, Azure, GCP, or iCloud)
+1. **Download DMG:**
+   ```bash
+   open "/Volumes/Data/xcode/binaries/20260127-DotSync-v1.2.0/DotSync-v1.2.0-build120.dmg"
+   ```
 
-### Building from Source
+2. **Install:**
+   - Drag Dot Sync.app to Applications folder
+   - Double-click to launch
 
-1. Clone the repository:
-```bash
-git clone https://github.com/kochj23/DotSync.git
-cd DotSync
-```
+### Option 2: Build from Source
 
-2. Open in Xcode:
-```bash
-open "Dot Sync.xcodeproj"
-```
+1. **Clone repository:**
+   ```bash
+   git clone https://github.com/kochj23/DotSync.git
+   cd DotSync
+   ```
 
-3. Build and run:
+2. **Open in Xcode:**
+   ```bash
+   open "Dot Sync.xcodeproj"
+   ```
+
+3. **Build:**
    - Press ⌘R or Product → Run
    - The app will launch and scan your config files
 
-### Installation
+4. **Build for Release:**
+   ```bash
+   xcodebuild -project "Dot Sync.xcodeproj" \
+     -scheme "Dot Sync" \
+     -configuration Release \
+     -archivePath "build/DotSync.xcarchive" \
+     archive
+   ```
 
-1. Build for release:
+---
+
+## Configuration
+
+### First Launch Setup
+
+1. **Launch Dot Sync:**
+   ```bash
+   open ~/Applications/Dot\ Sync.app
+   ```
+
+2. **App automatically scans** your home directory for config files
+
+3. **Review discovered files** in the left sidebar (organized by category)
+
+4. **Click "Cloud Setup"** to configure storage provider
+
+### Configuring Cloud Storage
+
+#### AWS S3
+
+1. **Select "AWS S3"** as provider
+2. **Enter configuration:**
+   - Bucket name (e.g., `my-dotfiles`)
+   - Region (e.g., `us-east-1`)
+   - Access Key ID
+   - Secret Access Key
+3. **Credentials** stored securely in macOS Keychain
+4. **Test connection** before saving
+
+**Setup AWS Bucket:**
 ```bash
-xcodebuild -project "Dot Sync.xcodeproj" \
-  -scheme "Dot Sync" \
-  -configuration Release \
-  -archivePath "build/DotSync.xcarchive" \
-  archive
+# Create S3 bucket
+aws s3 mb s3://my-dotfiles --region us-east-1
+
+# Enable versioning (recommended)
+aws s3api put-bucket-versioning \
+  --bucket my-dotfiles \
+  --versioning-configuration Status=Enabled
+
+# Enable encryption (recommended)
+aws s3api put-bucket-encryption \
+  --bucket my-dotfiles \
+  --server-side-encryption-configuration \
+    '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
 ```
 
-2. Export app:
+#### Azure Blob Storage
+
+1. **Select "Azure Blob"**
+2. **Enter configuration:**
+   - Storage account name
+   - Container name
+   - Tenant ID
+   - Client ID
+   - Client Secret
+3. **Credentials** stored in Keychain
+
+**Setup Azure Storage:**
 ```bash
-xcodebuild -exportArchive \
-  -archivePath "build/DotSync.xcarchive" \
-  -exportPath "build/export" \
-  -exportOptionsPlist ExportOptions.plist
+# Create storage account
+az storage account create \
+  --name mydotfiles \
+  --resource-group my-rg \
+  --location eastus \
+  --sku Standard_LRS
+
+# Create container
+az storage container create \
+  --name dotfiles \
+  --account-name mydotfiles
 ```
 
-3. Copy to Applications:
+#### Google Cloud Storage
+
+1. **Select "Google Cloud Storage"**
+2. **Enter configuration:**
+   - Bucket name
+   - Project ID
+   - Service account key (JSON)
+3. **Service account key** stored securely
+
+**Setup GCS Bucket:**
 ```bash
-cp -R "build/export/Dot Sync.app" /Applications/
+# Create bucket
+gsutil mb -p my-project gs://my-dotfiles
+
+# Enable versioning
+gsutil versioning set on gs://my-dotfiles
+
+# Set lifecycle to delete old versions after 90 days
+gsutil lifecycle set lifecycle.json gs://my-dotfiles
 ```
+
+#### iCloud Drive
+
+1. **Select "iCloud Drive"**
+2. **Choose folder** location within iCloud Drive
+3. **No credentials needed** (uses system authentication)
+4. **Automatic** sync with macOS iCloud integration
+
+### Syncing Files
+
+**First Sync:**
+
+1. **Select files to sync** (checkboxes in file list)
+2. **Click "Scan"** to compare local vs remote
+3. **Review sync status** for each file:
+   - 🟢 Synced
+   - 🔵 Local Newer → will upload
+   - 🟠 Remote Newer → will download
+   - 🔴 Conflict → manual resolution required
+   - 🟣 Not on Remote → new file to upload
+4. **Click "Sync Selected"** to execute
+5. **Review results** in status panel
+
+**Auto-Sync (v1.2.0+):**
+
+1. **Enable Auto-Sync** in Preferences
+2. **Dot Sync watches** selected files for changes
+3. **Automatic upload** when files modified
+4. **Debounced** (5-second delay after last change)
+5. **Background operation** (non-intrusive)
+
+**Manual Sync:**
+
+- Disable auto-sync for full control
+- Use "Scan" then "Sync Selected" workflow
+- Review changes before syncing
 
 ---
 
 ## Usage
 
-### First Launch Setup
-
-1. Launch Dot Sync
-2. App automatically scans your home directory
-3. Review discovered config files (left sidebar shows categories)
-4. Click "Cloud Setup" to configure your storage provider
-
-### Configuring Cloud Storage
-
-#### AWS S3
-1. Select "AWS S3" as provider
-2. Enter:
-   - Bucket name
-   - Region (e.g., us-east-1)
-   - Access Key ID
-   - Secret Access Key
-3. Credentials stored securely in macOS Keychain
-
-#### Azure Blob Storage
-1. Select "Azure Blob"
-2. Enter:
-   - Storage account name
-   - Container name
-   - Tenant ID, Client ID, Client Secret
-
-#### Google Cloud Storage
-1. Select "Google Cloud Storage"
-2. Enter:
-   - Bucket name
-   - Project ID
-   - Service account key (JSON)
-
-#### iCloud Drive
-1. Select "iCloud Drive"
-2. Choose folder location
-3. No credentials needed (uses system authentication)
-
-### Syncing Files
-
-1. **Select files** to sync (checkboxes)
-2. Click **"Scan"** to compare local vs remote
-3. Review sync status indicators:
-   - 🟢 Synced - Files match
-   - 🔵 Local Newer - Your copy is newer
-   - 🟠 Remote Newer - Cloud copy is newer
-   - 🔴 Conflict - Both changed, need resolution
-   - 🟣 Not on Remote - New file to upload
-4. Click **"Sync Selected"** to execute
-
 ### Resolving Conflicts
 
 When files conflict (both local and remote changed):
 
-1. Conflict dialog appears automatically
-2. View side-by-side diff
-3. Choose resolution:
+1. **Conflict dialog appears** automatically
+2. **View side-by-side diff** (coming soon)
+3. **Choose resolution:**
    - **Keep Local** - Upload your version
    - **Use Remote** - Download cloud version
    - **Merge Manually** - Handle outside Dot Sync
    - **Skip** - Decide later
+4. **Backup created** automatically before overwrite
+
+### Use Cases
+
+#### Scenario 1: New Machine Setup
+```bash
+# On new Mac
+1. Install Dot Sync
+2. Configure cloud provider (one-time)
+3. Download all configs
+4. Instantly configured development environment
+```
+
+**Time Saved:** 2-3 hours of manual configuration
+
+#### Scenario 2: Config Updates
+```bash
+# Update .zshrc on Machine A
+1. Modify .zshrc
+2. Dot Sync detects change (auto-sync)
+3. Uploads to cloud
+4. Machine B pulls update on next sync
+5. Both machines stay synchronized
+```
+
+**Time Saved:** Manual copying/pasting eliminated
+
+#### Scenario 3: Multiple Machines
+```bash
+# Work Mac, Personal Mac, MacBook
+1. All share same cloud storage
+2. Configs stay synchronized automatically
+3. Conflicts detected and resolved
+4. Consistent environment everywhere
+```
+
+**Time Saved:** Hours of manual synchronization per week
+
+### Command Examples
+
+**Scan for Config Files:**
+- Launch Dot Sync
+- Files automatically discovered
+- Review in file browser
+
+**Sync Specific Category:**
+- Select category (e.g., "Shell Configs")
+- Check all files in category
+- Click "Sync Selected"
+
+**Export Audit Log:**
+- Settings → Audit Log
+- Click "Export to CSV"
+- Save to desired location
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Files Not Discovered:**
+- Check file exists in home directory
+- Verify file matches known patterns (see File Discovery section)
+- Run manual scan (File → Rescan)
+- Check Console.app for scanning errors
+
+**Sync Failing:**
+- Verify cloud credentials are correct (Settings → Cloud)
+- Check network connectivity (ping cloud provider)
+- Ensure bucket/container exists
+- Review Console.app for API errors
+- Check firewall settings
+
+**Credentials Detected in Safe Files:**
+- Review file content for passwords/keys
+- Remove sensitive data or use environment variables
+- Add to exclusion list if intentional
+- Re-scan after cleaning file
+
+**Auto-Sync Not Working (v1.2.0):**
+- Verify Auto-Sync enabled (Preferences → Auto-Sync)
+- Check selected files are being monitored
+- Review file descriptor limits: `ulimit -n`
+- Check Console.app for DispatchSource errors
+- Restart Dot Sync if file watching stopped
+
+**High CPU Usage:**
+- Disable auto-sync temporarily
+- Reduce number of monitored files
+- Increase debounce interval (Settings)
+- Check for file watching conflicts with other apps
+
+**Conflict Resolution Loop:**
+- Choose "Keep Local" or "Use Remote" definitively
+- Don't skip conflicts repeatedly
+- Consider using version control (git) for complex configs
+- Export both versions and merge manually if needed
 
 ---
 
@@ -200,237 +530,128 @@ When files conflict (both local and remote changed):
 Dot Sync/
 ├── Models/
 │   ├── ConfigFile.swift          # Config file data model
-│   ├── CloudProvider.swift       # Cloud provider config
-│   └── SyncOperation.swift       # Sync operation tracking
+│   ├── CloudProvider.swift       # Cloud provider configuration
+│   ├── SyncOperation.swift       # Sync operation tracking
+│   └── FileCategory.swift        # File categorization
 ├── Services/
 │   ├── FileDiscoveryService.swift    # Scans for config files
+│   ├── FileWatcherService.swift      # DispatchSource file monitoring (v1.2.0)
 │   ├── SecurityScanner.swift         # Detects credentials
 │   ├── CloudStorageProtocol.swift    # Cloud storage interface
 │   ├── S3Provider.swift              # AWS S3 implementation
+│   ├── AzureProvider.swift           # Azure Blob implementation
+│   ├── GCSProvider.swift             # Google Cloud Storage
+│   ├── iCloudProvider.swift          # iCloud Drive implementation
 │   └── SyncEngine.swift              # Sync logic and operations
 ├── Views/
-│   └── ContentView.swift         # Main UI
+│   ├── ContentView.swift         # Main UI
+│   ├── FileBrowserView.swift    # File tree browser
+│   ├── CloudSetupView.swift     # Cloud configuration
+│   ├── ConflictView.swift       # Conflict resolution
+│   └── SettingsView.swift       # Application settings
+├── ViewModels/
+│   ├── DotSyncViewModel.swift   # Main view model
+│   └── CloudViewModel.swift     # Cloud provider view model
 └── DotSyncApp.swift              # App entry point
 ```
 
 ### Key Components
 
-**FileDiscoveryService:**
-- Scans home directory for dotfiles
+#### FileWatcherService (v1.2.0)
+**Real-time file monitoring:**
+```swift
+class FileWatcherService {
+    private var sources: [String: DispatchSourceFileSystemObject] = [:]
+
+    func watchFile(_ path: String) {
+        let fd = open(path, O_EVTONLY)
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .extend, .attrib],
+            queue: DispatchQueue.global()
+        )
+
+        source.setEventHandler { [weak self] in
+            self?.handleFileChange(path)
+        }
+
+        source.setCancelHandler {
+            close(fd)
+        }
+
+        source.resume()
+        sources[path] = source
+    }
+
+    func stopWatching(_ path: String) {
+        sources[path]?.cancel()
+        sources.removeValue(forKey: path)
+    }
+}
+```
+
+#### FileDiscoveryService
+**Scans home directory for config files:**
+- Pattern-based detection
 - Categorizes by application type
 - Calculates checksums for change detection
 - Determines sync priority
+- Excludes sensitive files
 
-**SecurityScanner:**
-- Scans files for credentials before sync
-- Pattern matching for API keys, tokens, passwords
-- Excludes SSH keys and sensitive files
+#### SecurityScanner
+**Prevents credential leaks:**
+- Scans file content for API keys, tokens, passwords
+- Pattern matching with regex
+- Excludes SSH keys and credential files
 - Sanitizes configs (removes auth sections)
 
-**CloudStorageProtocol:**
-- Abstract interface for cloud providers
-- Upload, download, list, delete operations
-- Implementations: S3, Azure, GCP, iCloud
+#### CloudStorageProtocol
+**Abstract interface for cloud providers:**
+```swift
+protocol CloudStorageProtocol {
+    func upload(file: ConfigFile, to path: String) async throws
+    func download(from path: String) async throws -> Data
+    func list(path: String) async throws -> [CloudFile]
+    func delete(path: String) async throws
+    func exists(path: String) async throws -> Bool
+}
+```
 
-**SyncEngine:**
-- Compares local vs remote versions
+**Implementations:**
+- S3Provider - AWS S3 with AWS SDK
+- AzureProvider - Azure Blob Storage
+- GCSProvider - Google Cloud Storage
+- iCloudProvider - iCloud Drive (FileManager)
+
+#### SyncEngine
+**Manages synchronization:**
+- Compares local vs remote versions (timestamps, checksums)
 - Detects conflicts
-- Executes sync operations
-- Manages sync state
-
----
-
-## Configuration Files Supported
-
-### Automatically Detected
-
-**Shell Configs (Critical):**
-- `.zshrc` - Zsh configuration
-- `.bashrc` - Bash configuration
-- `.bash_profile` - Bash profile
-- `.profile` - Universal shell profile
-- `.p10k.zsh` - Powerlevel10k theme
-
-**Terminal Profiles (High Priority):**
-- `~/Library/Preferences/com.apple.Terminal.plist` - Terminal.app profiles, colors, fonts
-- `~/Library/Preferences/com.googlecode.iterm2.plist` - iTerm2 profiles (if installed)
-
-**Version Control (Critical):**
-- `.gitconfig` - Git global settings
-
-**Editors (High):**
-- `.vimrc` - Vim configuration
-- `.vim/` - Vim plugins and settings
-- `.config/Code/User/settings.json` - VS Code settings
-
-**Cloud CLIs (High):**
-- `.aws/config` - AWS CLI (credentials excluded)
-- `.azure/config` - Azure CLI
-- `.config/gcloud/` - Google Cloud SDK
-
-**Development Tools (Medium):**
-- `.docker/config.json` - Docker (auth removed)
-- `.npmrc` - npm configuration
-- `.config/gh/` - GitHub CLI
-
-**Documentation (Low):**
-- `.aws_cheatsheet.md` - AWS reference
-- `.azure_cheatsheet.md` - Azure reference
-- `.zsh_cheatsheet.md` - Shell reference
-
----
-
-## Security
-
-### Credential Protection
-
-**Automatically Excluded:**
-- SSH private keys (id_rsa, id_ed25519, etc.)
-- AWS credentials file (.aws/credentials)
-- Docker auth tokens
-- npm tokens
-- Command history files
-- Any file matching credential patterns
-
-**Pattern Detection:**
-- Stripe API keys (sk_live_, sk_test_)
-- AWS keys (AKIA...)
-- Bearer tokens
-- JWT tokens (eyJ...)
-- Hardcoded passwords
-- OAuth client secrets
-
-**Sanitization:**
-- Removes credential helpers from .gitconfig
-- Strips auth tokens from Docker config
-- Removes AWS credentials from config files
-
-### Data Storage
-
-- Credentials stored in macOS Keychain
-- Optional encryption for cloud data
-- Audit log of all operations
-- Backup before overwrite
-
----
-
-## Use Cases
-
-### Scenario 1: New Machine Setup
-1. Install Dot Sync on new Mac
-2. Configure cloud provider (one-time)
-3. Download all configs
-4. Instantly configured development environment
-
-### Scenario 2: Config Updates
-1. Update .zshrc on Machine A
-2. Dot Sync detects change
-3. Sync to cloud
-4. Machine B pulls update on next sync
-5. Both machines stay in sync
-
-### Scenario 3: Multiple Machines
-1. Work Mac, Personal Mac, MacBook
-2. All share same cloud storage
-3. Configs stay synchronized
-4. Conflicts detected and resolved
-
----
-
-## Roadmap
-
-### Version 1.0 (Current)
-- [x] File discovery and categorization
-- [x] Security scanning
-- [x] AWS S3 support
-- [x] Basic sync engine
-- [x] SwiftUI interface
-- [ ] Azure Blob support (in progress)
-- [ ] Google Cloud Storage (in progress)
-- [ ] iCloud Drive (in progress)
-
-### Version 1.1 (Planned)
-- [ ] Conflict resolution UI with diff view
-- [ ] Scheduled auto-sync
-- [ ] Menu bar app mode
-- [ ] Sync notifications
-- [ ] Advanced filtering
-- [ ] Sync profiles (home, work, minimal)
-
-### Version 2.0 (Future)
-- [ ] Version history and rollback
-- [ ] Multi-machine sync coordination
-- [ ] Encrypted cloud storage
-- [ ] Team sync (shared configs)
-- [ ] Config templating
-- [ ] Custom sync rules
-
----
-
-## Troubleshooting
-
-### Files Not Discovered
-- Check file exists in home directory
-- Verify file matches known patterns
-- Run manual scan (click "Scan" button)
-
-### Sync Failing
-- Verify cloud credentials are correct
-- Check network connectivity
-- Ensure bucket/container exists
-- Review Console.app for error logs
-
-### Credentials Detected in Safe Files
-- Review file content for passwords/keys
-- Remove sensitive data
-- Use environment variables instead
-- Re-scan after cleaning
-
----
-
-## Contributing
-
-Contributions welcome! Please:
-
-1. Fork the repository
-2. Create feature branch
-3. Make changes
-4. Add tests if applicable
-5. Submit pull request
-
-### Security
-
-If you find a security vulnerability:
-- Email: kochj@digitalnoise.net
-- Subject: [SECURITY] Dot Sync Vulnerability
-- Include detailed description and reproduction steps
-
----
-
-## License
-
-MIT License
-
-Copyright (c) 2025 Jordan Koch
-
-See LICENSE file for full details.
-
----
-
-## Credits
-
-- **Author:** Jordan Koch
-- **Framework:** SwiftUI, Foundation, CryptoKit
-- **Platform:** macOS 13.0+
-- **Language:** Swift 5.0
+- Executes sync operations (upload, download)
+- Manages sync state and history
+- Handles errors and retries
 
 ---
 
 ## Version History
 
-### v1.0.0 - December 11, 2025
+### v1.2.0 (January 2026) - Current
+**Major Stability Release:**
+- **FileWatcher Rewrite**: DispatchSource implementation replaces FSEvents
+- **Crash Elimination**: Resolved all file watching crashes
+- **Memory Safety**: Proper file descriptor cleanup
+- **Debouncing**: 5-second delay prevents excessive syncs
+- **Performance**: Lower CPU usage with event-driven monitoring
 
-**Initial Release:**
+### v1.1.0 (December 2025)
+- **Terminal Profile Sync**: Added Terminal.app and iTerm2 profile support
+- **Azure Blob Support**: Microsoft Azure cloud storage integration
+- **GCS Support**: Google Cloud Storage implementation
+- **iCloud Drive**: Native iCloud integration
+- **Enhanced UI**: Improved file browser with icons and categories
+
+### v1.0.0 (December 2025) - Initial Release
+**Core Features:**
 - File discovery and categorization
 - Security scanning for credentials
 - AWS S3 cloud storage support
@@ -442,11 +663,39 @@ See LICENSE file for full details.
 
 ---
 
-**Repository:** https://github.com/kochj23/DotSync
-**Status:** Active Development
-**Last Updated:** December 11, 2025
+## License
+
+MIT License
+
+Copyright (c) 2026 Jordan Koch
+
+See LICENSE file for full details.
 
 ---
 
-**Last Updated:** January 22, 2026
+## Credits
+
+- **Author:** Jordan Koch ([@kochj23](https://github.com/kochj23))
+- **Framework:** SwiftUI, Foundation, CryptoKit, Combine
+- **Platform:** macOS 13.0+
+- **Language:** Swift 5.0
+
+---
+
+## Support
+
+**GitHub**: https://github.com/kochj23/DotSync
+
+**For Issues:**
+- Check troubleshooting guide
+- Review Console.app logs
+- Test cloud credentials separately
+- Verify file permissions
+
+This is a personal project by Jordan Koch.
+
+---
+
+**Last Updated:** January 27, 2026
+**Version:** 1.2.0 (build 120)
 **Status:** ✅ Production Ready

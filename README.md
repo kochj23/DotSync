@@ -44,6 +44,13 @@ Think of it as version control for your dotfiles with conflict detection:
 - ✅ **Security Scanning** - Detects and excludes files with credentials
 - ✅ **Conflict Detection** - Compares local vs remote timestamps
 - ✅ **Bidirectional Sync** - Upload or download as needed
+- ✅ **Auto-Sync (v1.2.0+)** - Real-time file watching with DispatchSource
+  - Monitors config files for changes using DispatchSource file system events
+  - Replaces previous FSEvents implementation (eliminated crashes)
+  - Debouncing with 5-second delay to prevent excessive syncs
+  - Automatic background sync when files change
+  - Memory-safe with proper file descriptor cleanup
+  - Optional: Manual sync mode for user-controlled operations
 
 ### Cloud Storage Support
 - ✅ AWS S3

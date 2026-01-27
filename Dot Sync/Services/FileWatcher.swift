@@ -7,7 +7,8 @@
 
 import Foundation
 
-/// Watches configuration files for changes using FSEvents
+/// Watches configuration files for changes using DispatchSource
+/// Replaces FSEvents which caused crashes with Swift/ObjC bridging
 @MainActor
 class FileWatcher: ObservableObject {
     static let shared = FileWatcher()
@@ -15,7 +16,8 @@ class FileWatcher: ObservableObject {
     @Published var isWatching = false
     @Published var changedFiles: Set<String> = []
 
-    private var eventStream: FSEventStreamRef?
+    private var dispatchSources: [String: DispatchSourceFileSystemObject] = [:]
+    private var fileDescriptors: [String: Int32] = [:]
     private var watchedPaths: [String] = []
     private var debounceTimers: [String: Timer] = [:]
 
@@ -27,23 +29,8 @@ class FileWatcher: ObservableObject {
 
     // MARK: - Watch Management
 
-    /// Start watching files for changes
+    /// Start watching files for changes using DispatchSource
     func startWatching(files: [ConfigFile]) {
-        // DISABLED: FSEvents callback causes crashes with Swift/ObjC bridging
-        // TODO: Implement safer alternative (polling, DispatchSource, or FileManager notifications)
-        print("[FileWatcher] ⚠️ File watching temporarily disabled due to FSEvents stability issues")
-        print("[FileWatcher] Auto-sync will not work until alternative implementation is added")
-
-        NotificationService.shared.notify(
-            title: "Auto-Sync Disabled",
-            body: "File watching is temporarily disabled. Use manual sync instead."
-        )
-
-        isWatching = false
-        return
-
-        // ORIGINAL CODE BELOW - COMMENTED OUT DUE TO CRASHES
-        /*
         // Safety: Don't crash if already watching
         if isWatching {
             print("[FileWatcher] Already watching - stopping first")
@@ -58,15 +45,74 @@ class FileWatcher: ObservableObject {
             return
         }
 
-        print("[FileWatcher] Starting watch for \(watchedPaths.count) files")
+        print("[FileWatcher] Starting watch for \(watchedPaths.count) files using DispatchSource")
 
-        // REST OF FUNCTION DISABLED - FSEvents causes crashes
-        */
+        var successCount = 0
+        for path in watchedPaths {
+            if startWatchingFile(path: path) {
+                successCount += 1
+            }
+        }
+
+        if successCount > 0 {
+            isWatching = true
+            print("[FileWatcher] ✅ Now watching \(successCount)/\(watchedPaths.count) files")
+
+            NotificationService.shared.notify(
+                title: "Auto-Sync Enabled",
+                body: "Watching \(successCount) config file(s) for changes"
+            )
+        } else {
+            print("[FileWatcher] ⚠️ Failed to watch any files")
+            NotificationService.shared.notify(
+                title: "Auto-Sync Failed",
+                body: "Could not start watching files. Check permissions."
+            )
+        }
+    }
+
+    /// Start watching a single file
+    private func startWatchingFile(path: String) -> Bool {
+        // Open file descriptor
+        let fd = open(path, O_EVTONLY)
+        guard fd >= 0 else {
+            print("[FileWatcher] ❌ Failed to open \(path): \(String(cString: strerror(errno)))")
+            return false
+        }
+
+        // Create dispatch source to monitor writes and attribute changes
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: fd,
+            eventMask: [.write, .attrib],
+            queue: DispatchQueue.main
+        )
+
+        // Store file descriptor for cleanup
+        fileDescriptors[path] = fd
+
+        // Handle file changes
+        source.setEventHandler { [weak self] in
+            Task { @MainActor [weak self] in
+                self?.handleFileChange(paths: [path])
+            }
+        }
+
+        // Cleanup on cancellation
+        source.setCancelHandler {
+            close(fd)
+        }
+
+        // Store and activate source
+        dispatchSources[path] = source
+        source.resume()
+
+        print("[FileWatcher] Started watching: \(URL(fileURLWithPath: path).lastPathComponent)")
+        return true
     }
 
     /// Stop watching files
     func stopWatching() {
-        guard let stream = eventStream else {
+        guard !dispatchSources.isEmpty else {
             // Already stopped
             isWatching = false
             return
@@ -74,28 +120,31 @@ class FileWatcher: ObservableObject {
 
         print("[FileWatcher] Stopping file watcher...")
 
-        // Stop stream safely
-        FSEventStreamStop(stream)
-        FSEventStreamInvalidate(stream)
-        FSEventStreamRelease(stream)
+        // Cancel all dispatch sources (this will trigger cleanup handlers)
+        for (path, source) in dispatchSources {
+            source.cancel()
+            print("[FileWatcher] Stopped watching: \(URL(fileURLWithPath: path).lastPathComponent)")
+        }
 
-        eventStream = nil
+        dispatchSources.removeAll()
+        fileDescriptors.removeAll()
         isWatching = false
 
         // Cancel all pending timers
         debounceTimers.values.forEach { $0.invalidate() }
         debounceTimers.removeAll()
 
-        print("[FileWatcher] ✅ Stopped watching")
+        print("[FileWatcher] ✅ Stopped watching all files")
     }
 
     deinit {
         // Ensure cleanup happens even if not called explicitly
-        if let stream = eventStream {
-            FSEventStreamStop(stream)
-            FSEventStreamInvalidate(stream)
-            FSEventStreamRelease(stream)
+        // Cancel all sources and close file descriptors
+        for source in dispatchSources.values {
+            source.cancel()
         }
+        dispatchSources.removeAll()
+        fileDescriptors.removeAll()
     }
 
     // MARK: - Change Handling

@@ -11,6 +11,7 @@ struct ContentView: View {
     @StateObject private var discoveryService = FileDiscoveryService.shared
     @StateObject private var syncEngine = SyncEngine.shared
     @StateObject private var profileManager = ProfileManager.shared
+    @StateObject private var aiManager = AIBackendManager.shared
 
     @State private var selectedCategory: ConfigCategory? = nil
     @State private var selectedFiles: Set<UUID> = []
@@ -18,6 +19,8 @@ struct ContentView: View {
     @State private var showingPreview = false
     @State private var showingConflicts = false
     @State private var dryRunEnabled = false
+    @State private var showingAIFeatures = false
+    @State private var selectedAITab: AIFeaturesDashboard.AITab = .askAI
 
     var body: some View {
         ZStack {
@@ -93,6 +96,47 @@ struct ContentView: View {
                     ForEach(SyncPriority.allCases, id: \.self) { priority in
                         PriorityRow(priority: priority, fileCount: priorityCount(for: priority))
                     }
+                }
+
+                Section("AI Features") {
+                    Button(action: { showingAIFeatures = true }) {
+                        HStack {
+                            Image(systemName: "cpu")
+                                .foregroundColor(.purple)
+                            Text("Ask AI")
+                            Spacer()
+                            if aiManager.activeBackend != nil {
+                                Circle()
+                                    .fill(Color.green)
+                                    .frame(width: 8, height: 8)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        selectedAITab = .security
+                        showingAIFeatures = true
+                    }) {
+                        HStack {
+                            Image(systemName: "lock.shield")
+                                .foregroundColor(.red)
+                            Text("Security Scan")
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        selectedAITab = .insights
+                        showingAIFeatures = true
+                    }) {
+                        HStack {
+                            Image(systemName: "chart.bar.xaxis")
+                                .foregroundColor(.blue)
+                            Text("Config Insights")
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .navigationTitle("Dot Sync")
@@ -208,6 +252,13 @@ struct ContentView: View {
                 if let summary = syncEngine.currentFailureSummary {
                     FailureSummaryView(summary: summary)
                 }
+            }
+            .sheet(isPresented: $showingAIFeatures) {
+                AIFeaturesDashboard(
+                    configs: filteredFiles,
+                    selectedTab: $selectedAITab
+                )
+                .frame(minWidth: 900, minHeight: 600)
             }
 
             // Status bar at bottom

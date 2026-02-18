@@ -6,6 +6,8 @@
 
 > Smart dotfiles synchronization across machines using cloud storage with real-time file watching
 
+![Dot Sync](Screenshots/main-window.png)
+
 ---
 
 ## What is Dot Sync?

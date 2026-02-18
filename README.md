@@ -701,3 +701,17 @@ This is a personal project by Jordan Koch.
 **Last Updated:** January 27, 2026
 **Version:** 1.2.0 (build 120)
 **Status:** ✅ Production Ready
+
+---
+
+## More Apps by Jordan Koch
+
+| App | Description |
+|-----|-------------|
+| [RsyncGUI](https://github.com/kochj23/RsyncGUI) | Native macOS GUI for rsync file synchronization |
+| [TopGUI](https://github.com/kochj23/TopGUI) | macOS system monitor with real-time metrics |
+| [ExcelExplorer](https://github.com/kochj23/ExcelExplorer) | Native macOS Excel/CSV file viewer |
+| [icon-creator](https://github.com/kochj23/icon-creator) | App icon set generator for all Apple platforms |
+| [MBox-Explorer](https://github.com/kochj23/MBox-Explorer) | macOS mbox email archive viewer |
+
+> **[View all projects](https://github.com/kochj23?tab=repositories)**

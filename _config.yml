@@ -1,0 +1,3 @@
+theme: jekyll-theme-cayman
+title: "DotSync"
+description: "macOS app for synchronizing dotfiles across machines using AWS S3, Azure Blob, Google Cloud Storage, or iCloud. Built with Swift and SwiftUI."

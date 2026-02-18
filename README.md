@@ -1,5 +1,7 @@
 # Dot Sync v1.2.0
 
+![Build](https://github.com/kochj23/DotSync/actions/workflows/build.yml/badge.svg)
+
 ![Platform](https://img.shields.io/badge/platform-macOS%2013.0%2B-lightgrey)
 ![Swift](https://img.shields.io/badge/swift-5.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)

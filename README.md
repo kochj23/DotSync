@@ -211,6 +211,10 @@ Detected Secrets:
 - Removes AWS credentials from config files
 - Redacts passwords from configuration
 
+### Security Hardening (February 2026)
+
+- **Command Injection Prevention** -- SyncHooks no longer use string interpolation for file metadata in shell commands; file names and paths are passed via environment variables to prevent injection through malicious file names
+
 ### Data Storage Security
 
 - **Credentials**: Stored in macOS Keychain (not UserDefaults)

@@ -39,9 +39,12 @@
 		A67A3C0BB8A940C2A4F3A48E /* AzureBlobProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3264F32520FAF6597171AAF /* AzureBlobProvider.swift */; };
 		AE8D2A8B67954CA3746306DD /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA24C5E062E969DF72A5B30 /* PreferencesView.swift */; };
 		B0AE434724995039B786AA8A /* iCloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA65682BF8469AB50679C79 /* iCloudProvider.swift */; };
+		B6B0349563DF73ACFEB14C50 /* AIBackendManager+Enhanced.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94AA1FBCD1C15F465FA360DC /* AIBackendManager+Enhanced.swift */; };
 		BC51E3EFCED70A395C3920DE /* CloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBAB5EF97069066D20EFD /* CloudProvider.swift */; };
 		BE62006E408C2D80D66778D0 /* AskAIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0453CAED52EF8B72019BF306 /* AskAIView.swift */; };
+		BCE620B2E50E12C9546E1FEC /* AIBackendManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1267DA26EBBDDB0192AF9FFD /* AIBackendManager.swift */; };
 		C126A91F84B0632BA873959B /* AIConfigInsights.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096EF21150C7D787BC103A9C /* AIConfigInsights.swift */; };
+		C7B376DA9EBE0E327A839B03 /* AIBackendManager+Generation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12EE85251076636194C0935 /* AIBackendManager+Generation.swift */; };
 		D227E29E175A48FE80B9A86F /* GoogleDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */; };
 		D9911672B202B1F62FECE179 /* ThreeWayMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAE6B27A87E3C927958405C /* ThreeWayMerge.swift */; };
 		DFA5734C97090BFBD6418148 /* ToastNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233A344B0B1253890F4C1415 /* ToastNotificationView.swift */; };
@@ -51,12 +54,14 @@
 		F0818A7CEE20D1F5B7FA44B0 /* MachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40352B5A8960A21E6C375B1 /* MachineInfo.swift */; };
 		F1551C241987D192CCA76D79 /* SyncHooks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E6D3547E5F3CB0D21B3C48 /* SyncHooks.swift */; };
 		F1C5BC05209C1DB178AE1B9D /* DotSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */; };
+		FAAB34B52F86B37BF7F5652F /* AIBackendStatusMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319609703CC0CBDFD2586596 /* AIBackendStatusMenu.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0453CAED52EF8B72019BF306 /* AskAIView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AskAIView.swift; path = "Dot Sync/Views/AskAIView.swift"; sourceTree = "<group>"; };
 		096EF21150C7D787BC103A9C /* AIConfigInsights.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIConfigInsights.swift; path = "Dot Sync/Services/AI/AIConfigInsights.swift"; sourceTree = "<group>"; };
 		12D16E0EFD14661F4B71760C /* AIMergeAssistant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIMergeAssistant.swift; path = "Dot Sync/Services/AI/AIMergeAssistant.swift"; sourceTree = "<group>"; };
+		1267DA26EBBDDB0192AF9FFD /* AIBackendManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIBackendManager.swift; path = "Dot Sync/AIBackendManager.swift"; sourceTree = "<group>"; };
 		19ED07767941B5076750669A /* AIConfigAssistant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIConfigAssistant.swift; path = "Dot Sync/Services/AI/AIConfigAssistant.swift"; sourceTree = "<group>"; };
 		1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncProfile.swift; path = "Dot Sync/Models/SyncProfile.swift"; sourceTree = "<group>"; };
 		1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GoogleDriveProvider.swift; path = "Dot Sync/Services/GoogleDriveProvider.swift"; sourceTree = "<group>"; };
@@ -66,6 +71,7 @@
 		233046D7912C359920BEEE9E /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = "Dot Sync/Views/ContentView.swift"; sourceTree = "<group>"; };
 		233A344B0B1253890F4C1415 /* ToastNotificationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ToastNotificationView.swift; path = "Dot Sync/Views/ToastNotificationView.swift"; sourceTree = "<group>"; };
 		2FAE6B27A87E3C927958405C /* ThreeWayMerge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThreeWayMerge.swift; path = "Dot Sync/Services/ThreeWayMerge.swift"; sourceTree = "<group>"; };
+		319609703CC0CBDFD2586596 /* AIBackendStatusMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIBackendStatusMenu.swift; path = "Dot Sync/AIBackendStatusMenu.swift"; sourceTree = "<group>"; };
 		431F6569BAED0A60EFFDD235 /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationService.swift; path = "Dot Sync/Services/NotificationService.swift"; sourceTree = "<group>"; };
 		532B810F06D97521A34A7665 /* AIBackendManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIBackendManager.swift; path = "Dot Sync/Services/AIBackendManager.swift"; sourceTree = "<group>"; };
 		5828FB9FE002309651E40457 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = "Dot Sync/Views/MenuBarView.swift"; sourceTree = "<group>"; };
@@ -75,8 +81,10 @@
 		7897DE37E627436A8EDD0192 /* ModernDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dot Sync/ModernDesign.swift"; sourceTree = "<group>"; };
 		888F9F592E34263FFF24DA06 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Dot Sync/Info.plist"; sourceTree = "<group>"; };
 		91E494F32A411FE6BB6DB220 /* DownloadFailure.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DownloadFailure.swift; path = "Dot Sync/Models/DownloadFailure.swift"; sourceTree = "<group>"; };
+		94AA1FBCD1C15F465FA360DC /* AIBackendManager+Enhanced.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "AIBackendManager+Enhanced.swift"; path = "Dot Sync/AIBackendManager+Enhanced.swift"; sourceTree = "<group>"; };
 		9A5EAF6D6F5E11E19E08F270 /* AWSHelper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AWSHelper.swift; path = "Dot Sync/Services/AWSHelper.swift"; sourceTree = "<group>"; };
 		9C83204DEAEA577FBA1A464A /* AISecurityAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AISecurityAnalyzer.swift; path = "Dot Sync/Services/AI/AISecurityAnalyzer.swift"; sourceTree = "<group>"; };
+		A12EE85251076636194C0935 /* AIBackendManager+Generation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "AIBackendManager+Generation.swift"; path = "Dot Sync/AIBackendManager+Generation.swift"; sourceTree = "<group>"; };
 		A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConflictResolutionView.swift; path = "Dot Sync/Views/ConflictResolutionView.swift"; sourceTree = "<group>"; };
 		A2A37A693E8B2FB7977CB62F /* Dot Sync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dot Sync.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncEngine.swift; path = "Dot Sync/Services/SyncEngine.swift"; sourceTree = "<group>"; };
@@ -151,6 +159,17 @@
 				EC3619D1A7227E040CDD4B9C /* AIFeaturesDashboard.swift */,
 			);
 			name = Views;
+			sourceTree = "<group>";
+		};
+		8323FEE80F928DDD2AD0AEB7 /* AIBackend */ = {
+			isa = PBXGroup;
+			children = (
+				1267DA26EBBDDB0192AF9FFD /* AIBackendManager.swift */,
+				A12EE85251076636194C0935 /* AIBackendManager+Generation.swift */,
+				94AA1FBCD1C15F465FA360DC /* AIBackendManager+Enhanced.swift */,
+				319609703CC0CBDFD2586596 /* AIBackendStatusMenu.swift */,
+			);
+			name = AIBackend;
 			sourceTree = "<group>";
 		};
 		97541DA7D1D02E5162CA9000 /* Dot Sync */ = {
@@ -231,6 +250,7 @@
 				A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */,
 				5828FB9FE002309651E40457 /* MenuBarView.swift */,
 				FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */,
+				8323FEE80F928DDD2AD0AEB7 /* AIBackend */,
 			);
 			sourceTree = "<group>";
 		};
@@ -351,7 +371,10 @@
 				29C65056F6633EFE3C9D24D3 /* AIConfigAssistant.swift in Sources */,
 				BE62006E408C2D80D66778D0 /* AskAIView.swift in Sources */,
 				041D0C622187CEF0AB1D5CC1 /* AIFeaturesDashboard.swift in Sources */,
-				4381627921E431EBE2ABDF39 /* AIBackendManager.swift in Sources */,
+				BCE620B2E50E12C9546E1FEC /* AIBackendManager.swift in Sources */,
+				C7B376DA9EBE0E327A839B03 /* AIBackendManager+Generation.swift in Sources */,
+				B6B0349563DF73ACFEB14C50 /* AIBackendManager+Enhanced.swift in Sources */,
+				FAAB34B52F86B37BF7F5652F /* AIBackendStatusMenu.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

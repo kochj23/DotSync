@@ -85,18 +85,24 @@ struct SyncHook: Identifiable, Codable {
             return HookResult(success: true, output: "Hook disabled", skipped: true)
         }
 
-        // Replace placeholders
-        var expandedCommand = command
-        if let file = file {
-            expandedCommand = expandedCommand
-                .replacingOccurrences(of: "{filename}", with: file.filename)
-                .replacingOccurrences(of: "{filepath}", with: file.path)
-                .replacingOccurrences(of: "{category}", with: file.category.rawValue)
-        }
+        // Pass file metadata via environment variables to prevent command injection
+        // Instead of interpolating filenames into the shell command (which allows injection
+        // via crafted filenames), we set environment variables that the command can reference
+        // as $SYNC_FILENAME, $SYNC_FILEPATH, $SYNC_CATEGORY
+        let expandedCommand = command
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/zsh")
         process.arguments = ["-c", expandedCommand]
+
+        // Merge file metadata into environment variables safely
+        var env = ProcessInfo.processInfo.environment
+        if let file = file {
+            env["SYNC_FILENAME"] = file.filename
+            env["SYNC_FILEPATH"] = file.path
+            env["SYNC_CATEGORY"] = file.category.rawValue
+        }
+        process.environment = env
 
         let outputPipe = Pipe()
         let errorPipe = Pipe()

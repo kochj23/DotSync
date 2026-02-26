@@ -366,7 +366,7 @@ az storage container create \
    - Service account key (JSON)
 3. **Service account key** stored securely
 
-**Setup GCS Bucket:**
+**Setup GCS (Google Cloud Storage) Bucket:**
 ```bash
 # Create bucket
 gsutil mb -p my-project gs://my-dotfiles

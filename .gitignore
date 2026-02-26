@@ -166,3 +166,4 @@ docs/build/
 # (Keep .xcconfig templates in repo, but not environment-specific values)
 *-Secrets.xcconfig
 *-Production.xcconfig
+*.xcuserstate

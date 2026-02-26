@@ -27,7 +27,7 @@ Dot Sync is a macOS application for syncing configuration files (dotfiles) acros
 - **Smart Categorization**: Groups configs by type (shell, git, editor, cloud)
 - **Security First**: Automatic credential detection and exclusion
 - **Conflict Detection**: Compare local vs remote timestamps
-- **Multi-Cloud Support**: AWS S3, Azure, GCP, iCloud Drive, S3-compatible providers
+- **Multi-Cloud Support**: AWS (Amazon Web Services) S3, Azure, GCP (Google Cloud Platform), iCloud Drive, S3-compatible providers
 
 ---
 
@@ -152,9 +152,9 @@ Detected Secrets:
 - Stripe API keys (sk_live_, sk_test_)
 - AWS keys (AKIA...)
 - Bearer tokens
-- JWT tokens (eyJ...)
+- JWT (JSON Web Token) tokens (eyJ...)
 - Hardcoded passwords
-- OAuth client secrets
+- OAuth (Open Authorization) client secrets
 ```
 
 ### User Experience
@@ -218,7 +218,7 @@ Detected Secrets:
 ### Data Storage Security
 
 - **Credentials**: Stored in macOS Keychain (not UserDefaults)
-- **Cloud Data**: Optional AES-256 encryption
+- **Cloud Data**: Optional AES-256 (Advanced Encryption Standard, 256-bit) encryption
 - **Audit Log**: All operations logged with timestamps
 - **Backups**: .backup files created before any overwrite
 - **No Telemetry**: Zero data sent to external services
@@ -249,7 +249,7 @@ Detected Secrets:
 
 ### Option 1: Pre-built Binary (Recommended)
 
-1. **Download DMG:**
+1. **Download DMG (Disk Image):**
    ```bash
    open "/Volumes/Data/xcode/binaries/20260127-DotSync-v1.2.0/DotSync-v1.2.0-build120.dmg"
    ```
@@ -481,7 +481,7 @@ When files conflict (both local and remote changed):
 
 **Export Audit Log:**
 - Settings → Audit Log
-- Click "Export to CSV"
+- Click "Export to CSV (Comma-Separated Values)"
 - Save to desired location
 
 ---

@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature or enhancement for REMOVED
+about: Suggest a new feature or enhancement for Dot Sync
 title: '[FEATURE] '
 labels: 'enhancement, needs-triage'
 assignees: 'kochj23'

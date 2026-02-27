@@ -223,7 +223,7 @@ cd "/Volumes/Data/xcode/Dot Sync"
 xcodebuild -project "Dot Sync.xcodeproj" -scheme "Dot Sync" build
 
 # Run
-open "/Users/kochj/Library/Developer/Xcode/DerivedData/Dot_Sync-*/Build/Products/Debug/Dot Sync.app"
+open ~/Library/Developer/Xcode/DerivedData/Dot_Sync-*/Build/Products/Debug/Dot\ Sync.app
 ```
 
 ### For Users:
@@ -276,7 +276,7 @@ open "/Users/kochj/Library/Developer/Xcode/DerivedData/Dot_Sync-*/Build/Products
 **Repository:** https://github.com/kochj23/DotSync
 **Issues:** https://github.com/kochj23/DotSync/issues
 **Author:** Jordan Koch (kochj23)
-**Email:** kochj@digitalnoise.net
+**GitHub:** https://github.com/kochj23
 
 ---
 

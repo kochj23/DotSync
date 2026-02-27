@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug or issue in REMOVED
+about: Report a bug or issue in Dot Sync
 title: '[BUG] '
 labels: 'bug, needs-triage'
 assignees: 'kochj23'
@@ -22,7 +22,6 @@ assignees: 'kochj23'
 
 **Network:**
 - Network Type: <!-- WiFi, Cellular, VPN -->
-- Corporate Network: <!-- Yes/No -->
 
 ---
 
@@ -95,7 +94,7 @@ assignees: 'kochj23'
 - [ ] This bug involves network security
 - [ ] This bug is a potential vulnerability
 
-**If any boxes above are checked, also email kochj@digitalnoise.net immediately with subject "[SECURITY] Bug Report"**
+**If any boxes above are checked, please report via our [Security Policy](https://github.com/kochj23/DotSync/security/policy) instead.**
 
 ---
 

@@ -13,6 +13,7 @@
 		0CAE4459A23EBE9AE5165BB5 /* VisualMergeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D623CB0E9913C345E5CB6D /* VisualMergeEditor.swift */; };
 		0FAA6A82FE269F23D3E10201 /* S3Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5E1D0DF1A2025FA215ED733 /* S3Provider.swift */; };
 		146B4B628E938BB1D72EED3E /* SyncOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD30D4F6886F0A98E8A3AB70 /* SyncOperation.swift */; };
+		1AAE004E5A3201F55EC48D72 /* NovaAPIServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0467D4FC494FD25C0996CC2 /* NovaAPIServer.swift */; };
 		1FFAEA8D03C04ADF8099CF3B /* OneDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */; };
 		20CD6DD0057A8FF97E0A0D39 /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */; };
 		214B4E3AB268855A5A154A99 /* ConflictResolutionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */; };
@@ -23,7 +24,6 @@
 		3AB3A23128F64A6A67453B70 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5828FB9FE002309651E40457 /* MenuBarView.swift */; };
 		40CE77F2818A95F6FFA55BDE /* FileDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */; };
 		434F935EA88C411AD023E7C2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233046D7912C359920BEEE9E /* ContentView.swift */; };
-		4381627921E431EBE2ABDF39 /* AIBackendManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 532B810F06D97521A34A7665 /* AIBackendManager.swift */; };
 		4439637E305D4F8FAA565C69 /* ModernDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7897DE37E627436A8EDD0192 /* ModernDesign.swift */; };
 		479336427B77AD6115EB733A /* SyncProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */; };
 		4E0E103C7F1747B0872A381D /* NASProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */; };
@@ -41,8 +41,8 @@
 		B0AE434724995039B786AA8A /* iCloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA65682BF8469AB50679C79 /* iCloudProvider.swift */; };
 		B6B0349563DF73ACFEB14C50 /* AIBackendManager+Enhanced.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94AA1FBCD1C15F465FA360DC /* AIBackendManager+Enhanced.swift */; };
 		BC51E3EFCED70A395C3920DE /* CloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBAB5EF97069066D20EFD /* CloudProvider.swift */; };
-		BE62006E408C2D80D66778D0 /* AskAIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0453CAED52EF8B72019BF306 /* AskAIView.swift */; };
 		BCE620B2E50E12C9546E1FEC /* AIBackendManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1267DA26EBBDDB0192AF9FFD /* AIBackendManager.swift */; };
+		BE62006E408C2D80D66778D0 /* AskAIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0453CAED52EF8B72019BF306 /* AskAIView.swift */; };
 		C126A91F84B0632BA873959B /* AIConfigInsights.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096EF21150C7D787BC103A9C /* AIConfigInsights.swift */; };
 		C7B376DA9EBE0E327A839B03 /* AIBackendManager+Generation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12EE85251076636194C0935 /* AIBackendManager+Generation.swift */; };
 		D227E29E175A48FE80B9A86F /* GoogleDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */; };
@@ -60,8 +60,8 @@
 /* Begin PBXFileReference section */
 		0453CAED52EF8B72019BF306 /* AskAIView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AskAIView.swift; path = "Dot Sync/Views/AskAIView.swift"; sourceTree = "<group>"; };
 		096EF21150C7D787BC103A9C /* AIConfigInsights.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIConfigInsights.swift; path = "Dot Sync/Services/AI/AIConfigInsights.swift"; sourceTree = "<group>"; };
-		12D16E0EFD14661F4B71760C /* AIMergeAssistant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIMergeAssistant.swift; path = "Dot Sync/Services/AI/AIMergeAssistant.swift"; sourceTree = "<group>"; };
 		1267DA26EBBDDB0192AF9FFD /* AIBackendManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIBackendManager.swift; path = "Dot Sync/AIBackendManager.swift"; sourceTree = "<group>"; };
+		12D16E0EFD14661F4B71760C /* AIMergeAssistant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIMergeAssistant.swift; path = "Dot Sync/Services/AI/AIMergeAssistant.swift"; sourceTree = "<group>"; };
 		19ED07767941B5076750669A /* AIConfigAssistant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIConfigAssistant.swift; path = "Dot Sync/Services/AI/AIConfigAssistant.swift"; sourceTree = "<group>"; };
 		1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncProfile.swift; path = "Dot Sync/Models/SyncProfile.swift"; sourceTree = "<group>"; };
 		1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GoogleDriveProvider.swift; path = "Dot Sync/Services/GoogleDriveProvider.swift"; sourceTree = "<group>"; };
@@ -93,6 +93,7 @@
 		C5E1D0DF1A2025FA215ED733 /* S3Provider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = S3Provider.swift; path = "Dot Sync/Services/S3Provider.swift"; sourceTree = "<group>"; };
 		C7D623CB0E9913C345E5CB6D /* VisualMergeEditor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VisualMergeEditor.swift; path = "Dot Sync/Views/VisualMergeEditor.swift"; sourceTree = "<group>"; };
 		C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OneDriveProvider.swift; path = "Dot Sync/Services/OneDriveProvider.swift"; sourceTree = "<group>"; };
+		D0467D4FC494FD25C0996CC2 /* NovaAPIServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NovaAPIServer.swift; path = "Dot Sync/NovaAPIServer.swift"; sourceTree = "<absolute>"; };
 		D40352B5A8960A21E6C375B1 /* MachineInfo.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MachineInfo.swift; path = "Dot Sync/Models/MachineInfo.swift"; sourceTree = "<group>"; };
 		DEA65682BF8469AB50679C79 /* iCloudProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = iCloudProvider.swift; path = "Dot Sync/Services/iCloudProvider.swift"; sourceTree = "<group>"; };
 		E29DAE9F80694C6C9F2D44C2 /* GCPProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GCPProvider.swift; path = "Dot Sync/Services/GCPProvider.swift"; sourceTree = "<group>"; };
@@ -180,6 +181,7 @@
 				CB09819D1A13BD30B87ADC88 /* Services */,
 				C78537E6591EC6352C4F5074 /* Utilities */,
 				A89306CDDB71AC0D8D2FFE05 /* Resources */,
+				D0467D4FC494FD25C0996CC2 /* NovaAPIServer.swift */,
 			);
 			name = "Dot Sync";
 			sourceTree = "<group>";
@@ -375,6 +377,7 @@
 				C7B376DA9EBE0E327A839B03 /* AIBackendManager+Generation.swift in Sources */,
 				B6B0349563DF73ACFEB14C50 /* AIBackendManager+Enhanced.swift in Sources */,
 				FAAB34B52F86B37BF7F5652F /* AIBackendStatusMenu.swift in Sources */,
+				1AAE004E5A3201F55EC48D72 /* NovaAPIServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

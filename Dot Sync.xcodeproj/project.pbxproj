@@ -23,14 +23,17 @@
 		3AB3A23128F64A6A67453B70 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5828FB9FE002309651E40457 /* MenuBarView.swift */; };
 		40CE77F2818A95F6FFA55BDE /* FileDiscoveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */; };
 		434F935EA88C411AD023E7C2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233046D7912C359920BEEE9E /* ContentView.swift */; };
-		4381627921E431EBE2ABDF39 /* AIBackendManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 532B810F06D97521A34A7665 /* AIBackendManager.swift */; };
 		4439637E305D4F8FAA565C69 /* ModernDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7897DE37E627436A8EDD0192 /* ModernDesign.swift */; };
 		479336427B77AD6115EB733A /* SyncProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */; };
+		4D7C035071BA68E2227FFA0D /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E2CCD6BE1AC6F02CF4173A /* WidgetData.swift */; };
 		4E0E103C7F1747B0872A381D /* NASProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */; };
+		60EAB7E654438C3F77CA734D /* AIBackendManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 532B810F06D97521A34A7665 /* AIBackendManager.swift */; };
 		648C1A2B1F6D7CA7D38B368B /* AISecurityAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C83204DEAEA577FBA1A464A /* AISecurityAnalyzer.swift */; };
 		6D58A59E47400F7F1C3E82AB /* GCPProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E29DAE9F80694C6C9F2D44C2 /* GCPProvider.swift */; };
+		701BB48B8B5BC14DFED0289D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1EA5E60C3FB27D728E204DB7 /* Cocoa.framework */; };
 		7A24D528D70CBD002A65F090 /* SyncProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = E676A6E88B876914583AB00D /* SyncProgress.swift */; };
 		829CA412BBA2495CA664610B /* DiffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED7EEBE906F3EA169140AFFF /* DiffView.swift */; };
+		863E0CC327AED44FDC4E6E0D /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86965C0388897564DE9A03E2 /* SharedDataManager.swift */; };
 		8E3A29A0A97626C18A479DAD /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B596B474F5BA39E1ADC4F7DD /* StatusBarView.swift */; };
 		8ECDAF212295D34B1D8D1F8F /* DownloadFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91E494F32A411FE6BB6DB220 /* DownloadFailure.swift */; };
 		96311ED304A3F04479DC962C /* AWSHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5EAF6D6F5E11E19E08F270 /* AWSHelper.swift */; };
@@ -38,30 +41,51 @@
 		A17FD0D450309319A2E6F01C /* AIMergeAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12D16E0EFD14661F4B71760C /* AIMergeAssistant.swift */; };
 		A67A3C0BB8A940C2A4F3A48E /* AzureBlobProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3264F32520FAF6597171AAF /* AzureBlobProvider.swift */; };
 		AE8D2A8B67954CA3746306DD /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA24C5E062E969DF72A5B30 /* PreferencesView.swift */; };
+		AFD5C660E140B3C042D8AEF1 /* Dot Sync Widget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 80AB5297F8D8599174504547 /* Dot Sync Widget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B0AE434724995039B786AA8A /* iCloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA65682BF8469AB50679C79 /* iCloudProvider.swift */; };
-		B6B0349563DF73ACFEB14C50 /* AIBackendManager+Enhanced.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94AA1FBCD1C15F465FA360DC /* AIBackendManager+Enhanced.swift */; };
 		BC51E3EFCED70A395C3920DE /* CloudProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EBBAB5EF97069066D20EFD /* CloudProvider.swift */; };
 		BE62006E408C2D80D66778D0 /* AskAIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0453CAED52EF8B72019BF306 /* AskAIView.swift */; };
-		BCE620B2E50E12C9546E1FEC /* AIBackendManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1267DA26EBBDDB0192AF9FFD /* AIBackendManager.swift */; };
 		C126A91F84B0632BA873959B /* AIConfigInsights.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096EF21150C7D787BC103A9C /* AIConfigInsights.swift */; };
-		C7B376DA9EBE0E327A839B03 /* AIBackendManager+Generation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A12EE85251076636194C0935 /* AIBackendManager+Generation.swift */; };
 		D227E29E175A48FE80B9A86F /* GoogleDriveProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */; };
 		D9911672B202B1F62FECE179 /* ThreeWayMerge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAE6B27A87E3C927958405C /* ThreeWayMerge.swift */; };
 		DFA5734C97090BFBD6418148 /* ToastNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233A344B0B1253890F4C1415 /* ToastNotificationView.swift */; };
 		E280319E220B946672AD32A9 /* SecurityScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 600F98EC1575548082806730 /* SecurityScanner.swift */; };
 		E6195E2A9A5FD481AC84616F /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 431F6569BAED0A60EFFDD235 /* NotificationService.swift */; };
+		E648B5863A1CFE5612FE9D1E /* DotSyncWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A231EFC9C4180EB08ABCFA3 /* DotSyncWidget.swift */; };
 		EC0F72804FAB0A2D933A5B76 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E6976BCA44C93D16459B2493 /* Assets.xcassets */; };
 		F0818A7CEE20D1F5B7FA44B0 /* MachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40352B5A8960A21E6C375B1 /* MachineInfo.swift */; };
 		F1551C241987D192CCA76D79 /* SyncHooks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E6D3547E5F3CB0D21B3C48 /* SyncHooks.swift */; };
 		F1C5BC05209C1DB178AE1B9D /* DotSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */; };
-		FAAB34B52F86B37BF7F5652F /* AIBackendStatusMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319609703CC0CBDFD2586596 /* AIBackendStatusMenu.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A970A5A7B2086C6294DCE26D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B39A3B26F9660F2B9808931 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 39356410B944FA42AC688BE7;
+			remoteInfo = "Dot Sync Widget";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8373C0974091E897BDD06A80 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AFD5C660E140B3C042D8AEF1 /* Dot Sync Widget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0453CAED52EF8B72019BF306 /* AskAIView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AskAIView.swift; path = "Dot Sync/Views/AskAIView.swift"; sourceTree = "<group>"; };
 		096EF21150C7D787BC103A9C /* AIConfigInsights.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIConfigInsights.swift; path = "Dot Sync/Services/AI/AIConfigInsights.swift"; sourceTree = "<group>"; };
 		12D16E0EFD14661F4B71760C /* AIMergeAssistant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIMergeAssistant.swift; path = "Dot Sync/Services/AI/AIMergeAssistant.swift"; sourceTree = "<group>"; };
-		1267DA26EBBDDB0192AF9FFD /* AIBackendManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIBackendManager.swift; path = "Dot Sync/AIBackendManager.swift"; sourceTree = "<group>"; };
 		19ED07767941B5076750669A /* AIConfigAssistant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIConfigAssistant.swift; path = "Dot Sync/Services/AI/AIConfigAssistant.swift"; sourceTree = "<group>"; };
 		1BC5142DBB6B2FB621C109C4 /* SyncProfile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncProfile.swift; path = "Dot Sync/Models/SyncProfile.swift"; sourceTree = "<group>"; };
 		1CA62A247E3A438CBBA438FF /* GoogleDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GoogleDriveProvider.swift; path = "Dot Sync/Services/GoogleDriveProvider.swift"; sourceTree = "<group>"; };
@@ -71,20 +95,20 @@
 		233046D7912C359920BEEE9E /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = "Dot Sync/Views/ContentView.swift"; sourceTree = "<group>"; };
 		233A344B0B1253890F4C1415 /* ToastNotificationView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ToastNotificationView.swift; path = "Dot Sync/Views/ToastNotificationView.swift"; sourceTree = "<group>"; };
 		2FAE6B27A87E3C927958405C /* ThreeWayMerge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ThreeWayMerge.swift; path = "Dot Sync/Services/ThreeWayMerge.swift"; sourceTree = "<group>"; };
-		319609703CC0CBDFD2586596 /* AIBackendStatusMenu.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIBackendStatusMenu.swift; path = "Dot Sync/AIBackendStatusMenu.swift"; sourceTree = "<group>"; };
 		431F6569BAED0A60EFFDD235 /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationService.swift; path = "Dot Sync/Services/NotificationService.swift"; sourceTree = "<group>"; };
+		4A231EFC9C4180EB08ABCFA3 /* DotSyncWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DotSyncWidget.swift; sourceTree = "<group>"; };
 		532B810F06D97521A34A7665 /* AIBackendManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AIBackendManager.swift; path = "Dot Sync/Services/AIBackendManager.swift"; sourceTree = "<group>"; };
 		5828FB9FE002309651E40457 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MenuBarView.swift; path = "Dot Sync/Views/MenuBarView.swift"; sourceTree = "<group>"; };
 		5B333CE26F2D6A43BC4C8AAA /* FailureSummaryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FailureSummaryView.swift; path = "Dot Sync/Views/FailureSummaryView.swift"; sourceTree = "<group>"; };
 		5C6E0E520FBDF31FBC2072F2 /* FileDiscoveryService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileDiscoveryService.swift; path = "Dot Sync/Services/FileDiscoveryService.swift"; sourceTree = "<group>"; };
 		600F98EC1575548082806730 /* SecurityScanner.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SecurityScanner.swift; path = "Dot Sync/Services/SecurityScanner.swift"; sourceTree = "<group>"; };
 		7897DE37E627436A8EDD0192 /* ModernDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Dot Sync/ModernDesign.swift"; sourceTree = "<group>"; };
+		80AB5297F8D8599174504547 /* Dot Sync Widget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = "Dot Sync Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		86965C0388897564DE9A03E2 /* SharedDataManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SharedDataManager.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
 		888F9F592E34263FFF24DA06 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Dot Sync/Info.plist"; sourceTree = "<group>"; };
 		91E494F32A411FE6BB6DB220 /* DownloadFailure.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DownloadFailure.swift; path = "Dot Sync/Models/DownloadFailure.swift"; sourceTree = "<group>"; };
-		94AA1FBCD1C15F465FA360DC /* AIBackendManager+Enhanced.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "AIBackendManager+Enhanced.swift"; path = "Dot Sync/AIBackendManager+Enhanced.swift"; sourceTree = "<group>"; };
 		9A5EAF6D6F5E11E19E08F270 /* AWSHelper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AWSHelper.swift; path = "Dot Sync/Services/AWSHelper.swift"; sourceTree = "<group>"; };
 		9C83204DEAEA577FBA1A464A /* AISecurityAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AISecurityAnalyzer.swift; path = "Dot Sync/Services/AI/AISecurityAnalyzer.swift"; sourceTree = "<group>"; };
-		A12EE85251076636194C0935 /* AIBackendManager+Generation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "AIBackendManager+Generation.swift"; path = "Dot Sync/AIBackendManager+Generation.swift"; sourceTree = "<group>"; };
 		A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConflictResolutionView.swift; path = "Dot Sync/Views/ConflictResolutionView.swift"; sourceTree = "<group>"; };
 		A2A37A693E8B2FB7977CB62F /* Dot Sync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Dot Sync.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A6781FABE13DF58DD0E1D6AA /* SyncEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncEngine.swift; path = "Dot Sync/Services/SyncEngine.swift"; sourceTree = "<group>"; };
@@ -95,6 +119,7 @@
 		C9365FBB07C4415E8BFD60DC /* OneDriveProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OneDriveProvider.swift; path = "Dot Sync/Services/OneDriveProvider.swift"; sourceTree = "<group>"; };
 		D40352B5A8960A21E6C375B1 /* MachineInfo.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MachineInfo.swift; path = "Dot Sync/Models/MachineInfo.swift"; sourceTree = "<group>"; };
 		DEA65682BF8469AB50679C79 /* iCloudProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = iCloudProvider.swift; path = "Dot Sync/Services/iCloudProvider.swift"; sourceTree = "<group>"; };
+		E1E2CCD6BE1AC6F02CF4173A /* WidgetData.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WidgetData.swift; path = WidgetData.swift; sourceTree = "<group>"; };
 		E29DAE9F80694C6C9F2D44C2 /* GCPProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GCPProvider.swift; path = "Dot Sync/Services/GCPProvider.swift"; sourceTree = "<group>"; };
 		E3264F32520FAF6597171AAF /* AzureBlobProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AzureBlobProvider.swift; path = "Dot Sync/Services/AzureBlobProvider.swift"; sourceTree = "<group>"; };
 		E676A6E88B876914583AB00D /* SyncProgress.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SyncProgress.swift; path = "Dot Sync/Models/SyncProgress.swift"; sourceTree = "<group>"; };
@@ -111,6 +136,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		1EEFF7D64B57F3A12ED49550 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				701BB48B8B5BC14DFED0289D /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C8D3F6486D108671652A8ABF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -122,6 +155,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0125548AE9C01D914554124D /* Dot Sync Widget */ = {
+			isa = PBXGroup;
+			children = (
+				4A231EFC9C4180EB08ABCFA3 /* DotSyncWidget.swift */,
+			);
+			name = "Dot Sync Widget";
+			path = "Dot Sync Widget";
+			sourceTree = "<group>";
+		};
 		4E9A7D94E53AD730971CA2C7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -143,6 +185,7 @@
 			isa = PBXGroup;
 			children = (
 				A2A37A693E8B2FB7977CB62F /* Dot Sync.app */,
+				80AB5297F8D8599174504547 /* Dot Sync Widget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -164,10 +207,6 @@
 		8323FEE80F928DDD2AD0AEB7 /* AIBackend */ = {
 			isa = PBXGroup;
 			children = (
-				1267DA26EBBDDB0192AF9FFD /* AIBackendManager.swift */,
-				A12EE85251076636194C0935 /* AIBackendManager+Generation.swift */,
-				94AA1FBCD1C15F465FA360DC /* AIBackendManager+Enhanced.swift */,
-				319609703CC0CBDFD2586596 /* AIBackendStatusMenu.swift */,
 			);
 			name = AIBackend;
 			sourceTree = "<group>";
@@ -251,7 +290,19 @@
 				5828FB9FE002309651E40457 /* MenuBarView.swift */,
 				FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */,
 				8323FEE80F928DDD2AD0AEB7 /* AIBackend */,
+				0125548AE9C01D914554124D /* Dot Sync Widget */,
+				ED9A9CAFF974D774B5A98F14 /* Shared */,
 			);
+			sourceTree = "<group>";
+		};
+		ED9A9CAFF974D774B5A98F14 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				E1E2CCD6BE1AC6F02CF4173A /* WidgetData.swift */,
+				86965C0388897564DE9A03E2 /* SharedDataManager.swift */,
+			);
+			name = Shared;
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		F8591A21E94B236E1C5DF518 /* Models */ = {
@@ -275,15 +326,34 @@
 				746E29F98A410792C30912F7 /* Sources */,
 				C8D3F6486D108671652A8ABF /* Frameworks */,
 				D2E4F7034CBB71CCA85BB0EE /* Resources */,
+				8373C0974091E897BDD06A80 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				04AE0DC75CEDF6508DF825A7 /* PBXTargetDependency */,
 			);
 			name = "Dot Sync";
 			productName = "Dot Sync";
 			productReference = A2A37A693E8B2FB7977CB62F /* Dot Sync.app */;
 			productType = "com.apple.product-type.application";
+		};
+		39356410B944FA42AC688BE7 /* Dot Sync Widget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FCEC6E27D583347255DC72D3 /* Build configuration list for PBXNativeTarget "Dot Sync Widget" */;
+			buildPhases = (
+				D36C4FFCA4F3636E08622738 /* Sources */,
+				1EEFF7D64B57F3A12ED49550 /* Frameworks */,
+				B31ACFA0373C0148F612DCB6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Dot Sync Widget";
+			productName = "Dot Sync Widget";
+			productReference = 80AB5297F8D8599174504547 /* Dot Sync Widget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -310,11 +380,19 @@
 			projectRoot = "";
 			targets = (
 				2DF55476B60C019A06D43A5B /* Dot Sync */,
+				39356410B944FA42AC688BE7 /* Dot Sync Widget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		B31ACFA0373C0148F612DCB6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D2E4F7034CBB71CCA85BB0EE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -371,14 +449,30 @@
 				29C65056F6633EFE3C9D24D3 /* AIConfigAssistant.swift in Sources */,
 				BE62006E408C2D80D66778D0 /* AskAIView.swift in Sources */,
 				041D0C622187CEF0AB1D5CC1 /* AIFeaturesDashboard.swift in Sources */,
-				BCE620B2E50E12C9546E1FEC /* AIBackendManager.swift in Sources */,
-				C7B376DA9EBE0E327A839B03 /* AIBackendManager+Generation.swift in Sources */,
-				B6B0349563DF73ACFEB14C50 /* AIBackendManager+Enhanced.swift in Sources */,
-				FAAB34B52F86B37BF7F5652F /* AIBackendStatusMenu.swift in Sources */,
+				60EAB7E654438C3F77CA734D /* AIBackendManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D36C4FFCA4F3636E08622738 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E648B5863A1CFE5612FE9D1E /* DotSyncWidget.swift in Sources */,
+				4D7C035071BA68E2227FFA0D /* WidgetData.swift in Sources */,
+				863E0CC327AED44FDC4E6E0D /* SharedDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		04AE0DC75CEDF6508DF825A7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Dot Sync Widget";
+			target = 39356410B944FA42AC688BE7 /* Dot Sync Widget */;
+			targetProxy = A970A5A7B2086C6294DCE26D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1578C3F2F1A85A29D69D048B /* Release */ = {
@@ -446,10 +540,36 @@
 				INFOPLIST_FILE = "Dot Sync/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.dotsync;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E81B0F692098857173D58A44 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Dot Sync Widget/Dot_Sync_Widget.entitlements";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Dot Sync Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Dot Sync Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2026 Jordan Koch. All rights reserved.";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.dotsync.widget;
+				PRODUCT_NAME = "Dot Sync Widget";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.9;
 			};
 			name = Debug;
 		};
@@ -464,7 +584,7 @@
 				INFOPLIST_FILE = "Dot Sync/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.dotsync;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
@@ -532,6 +652,32 @@
 			};
 			name = Debug;
 		};
+		F3BCBDE26B4CC5AFB0273CF5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Dot Sync Widget/Dot_Sync_Widget.entitlements";
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Dot Sync Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Dot Sync Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2026 Jordan Koch. All rights reserved.";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.2.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.dotsync.widget;
+				PRODUCT_NAME = "Dot Sync Widget";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -549,6 +695,15 @@
 			buildConfigurations = (
 				EDC94874C1560E77C2EA711B /* Debug */,
 				1578C3F2F1A85A29D69D048B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FCEC6E27D583347255DC72D3 /* Build configuration list for PBXNativeTarget "Dot Sync Widget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F3BCBDE26B4CC5AFB0273CF5 /* Release */,
+				E81B0F692098857173D58A44 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

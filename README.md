@@ -31,7 +31,15 @@ Dot Sync is a macOS application for syncing configuration files (dotfiles) acros
 
 ---
 
-## What's New in v1.2.0 (January 2026)
+## What's New in v1.2.0 (March 2026 - Build Update)
+
+### macOS Widget Extension Now Active
+- Widget Extension target hooked up in Xcode project — widget now builds and deploys
+- **Small**: Current sync status ring (synced/pending/conflicts/error), machine count, last sync time
+- **Medium**: Status + recent files synced + conflict count + cloud provider
+- **Large**: Per-machine sync status, recent sync history, conflict details, quick sync action
+
+---
 
 ### 🚀 FileWatcher Rewrite (Complete Stability Fix)
 **Real-time file monitoring with DispatchSource:**

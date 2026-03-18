@@ -12,6 +12,10 @@ struct DotSyncApp: App {
     @StateObject private var syncEngine = SyncEngine.shared
     @StateObject private var fileWatcher = FileWatcher.shared
 
+    init() {
+        NovaAPIServer.shared.start()
+    }
+
     var body: some Scene {
         // Main window
         WindowGroup {

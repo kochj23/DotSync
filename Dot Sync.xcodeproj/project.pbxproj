@@ -56,6 +56,18 @@
 		F0818A7CEE20D1F5B7FA44B0 /* MachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40352B5A8960A21E6C375B1 /* MachineInfo.swift */; };
 		F1551C241987D192CCA76D79 /* SyncHooks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21E6D3547E5F3CB0D21B3C48 /* SyncHooks.swift */; };
 		F1C5BC05209C1DB178AE1B9D /* DotSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF26216AF71F5D068B20BA79 /* DotSyncApp.swift */; };
+		BB00NOVA000000000001 /* NovaAPIServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00NOVA000000000001 /* NovaAPIServer.swift */; };
+		BB00TEST000000000001 /* ConfigFileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST000000000001 /* ConfigFileTests.swift */; };
+		BB00TEST000000000002 /* SecurityScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST000000000002 /* SecurityScannerTests.swift */; };
+		BB00TEST000000000003 /* ThreeWayMergeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST000000000003 /* ThreeWayMergeTests.swift */; };
+		BB00TEST000000000004 /* FileDiscoveryServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST000000000004 /* FileDiscoveryServiceTests.swift */; };
+		BB00TEST000000000005 /* SyncProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST000000000005 /* SyncProfileTests.swift */; };
+		BB00TEST000000000006 /* SyncOperationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST000000000006 /* SyncOperationTests.swift */; };
+		BB00TEST000000000007 /* CloudProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST000000000007 /* CloudProviderTests.swift */; };
+		BB00TEST000000000008 /* SyncHookTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST000000000008 /* SyncHookTests.swift */; };
+		BB00TEST000000000009 /* MachineInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST000000000009 /* MachineInfoTests.swift */; };
+		BB00TEST00000000000A /* FilesystemIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST00000000000A /* FilesystemIntegrationTests.swift */; };
+		BB00TEST00000000000B /* SyncProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00TEST00000000000B /* SyncProgressTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +77,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 39356410B944FA42AC688BE7;
 			remoteInfo = "Dot Sync Widget";
+		};
+		7700TEST000000000000 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B39A3B26F9660F2B9808931 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2DF55476B60C019A06D43A5B;
+			remoteInfo = "Dot Sync";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -133,6 +152,19 @@
 		FE1BDF4CCFD34DF19F6A74CD /* NASProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NASProvider.swift; path = "Dot Sync/Services/NASProvider.swift"; sourceTree = "<group>"; };
 		FE4E6D5395ACB8F8E9990811 /* ConfigFile.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConfigFile.swift; path = "Dot Sync/Models/ConfigFile.swift"; sourceTree = "<group>"; };
 		FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FileWatcher.swift; path = "Dot Sync/Services/FileWatcher.swift"; sourceTree = "<group>"; };
+		AA00NOVA000000000001 /* NovaAPIServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NovaAPIServer.swift; path = "Dot Sync/NovaAPIServer.swift"; sourceTree = "<group>"; };
+		AA00TEST000000000001 /* ConfigFileTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigFileTests.swift; sourceTree = "<group>"; };
+		AA00TEST000000000002 /* SecurityScannerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SecurityScannerTests.swift; sourceTree = "<group>"; };
+		AA00TEST000000000003 /* ThreeWayMergeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThreeWayMergeTests.swift; sourceTree = "<group>"; };
+		AA00TEST000000000004 /* FileDiscoveryServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FileDiscoveryServiceTests.swift; sourceTree = "<group>"; };
+		AA00TEST000000000005 /* SyncProfileTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncProfileTests.swift; sourceTree = "<group>"; };
+		AA00TEST000000000006 /* SyncOperationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncOperationTests.swift; sourceTree = "<group>"; };
+		AA00TEST000000000007 /* CloudProviderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudProviderTests.swift; sourceTree = "<group>"; };
+		AA00TEST000000000008 /* SyncHookTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncHookTests.swift; sourceTree = "<group>"; };
+		AA00TEST000000000009 /* MachineInfoTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MachineInfoTests.swift; sourceTree = "<group>"; };
+		AA00TEST00000000000A /* FilesystemIntegrationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FilesystemIntegrationTests.swift; sourceTree = "<group>"; };
+		AA00TEST00000000000B /* SyncProgressTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SyncProgressTests.swift; sourceTree = "<group>"; };
+		DD00TEST000000000000 /* Dot Sync Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Dot Sync Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +181,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				25C817A15F3CD570E10D773E /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FF00TEST000000000000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,6 +225,7 @@
 			children = (
 				A2A37A693E8B2FB7977CB62F /* Dot Sync.app */,
 				80AB5297F8D8599174504547 /* Dot Sync Widget.appex */,
+				DD00TEST000000000000 /* Dot Sync Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -289,6 +329,8 @@
 				A22A4F8ECA9144F31A31AE08 /* ConflictResolutionView.swift */,
 				5828FB9FE002309651E40457 /* MenuBarView.swift */,
 				FFCBC5A744EE8E8629D10C5F /* FileWatcher.swift */,
+				AA00NOVA000000000001 /* NovaAPIServer.swift */,
+				2200TEST000000000000 /* Dot Sync Tests */,
 				8323FEE80F928DDD2AD0AEB7 /* AIBackend */,
 				0125548AE9C01D914554124D /* Dot Sync Widget */,
 				ED9A9CAFF974D774B5A98F14 /* Shared */,
@@ -314,6 +356,25 @@
 				91E494F32A411FE6BB6DB220 /* DownloadFailure.swift */,
 			);
 			name = Models;
+			sourceTree = "<group>";
+		};
+		2200TEST000000000000 /* Dot Sync Tests */ = {
+			isa = PBXGroup;
+			children = (
+				AA00TEST000000000001 /* ConfigFileTests.swift */,
+				AA00TEST000000000002 /* SecurityScannerTests.swift */,
+				AA00TEST000000000003 /* ThreeWayMergeTests.swift */,
+				AA00TEST000000000004 /* FileDiscoveryServiceTests.swift */,
+				AA00TEST000000000005 /* SyncProfileTests.swift */,
+				AA00TEST000000000006 /* SyncOperationTests.swift */,
+				AA00TEST000000000007 /* CloudProviderTests.swift */,
+				AA00TEST000000000008 /* SyncHookTests.swift */,
+				AA00TEST000000000009 /* MachineInfoTests.swift */,
+				AA00TEST00000000000A /* FilesystemIntegrationTests.swift */,
+				AA00TEST00000000000B /* SyncProgressTests.swift */,
+			);
+			name = "Dot Sync Tests";
+			path = "Dot Sync Tests";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -355,6 +416,24 @@
 			productReference = 80AB5297F8D8599174504547 /* Dot Sync Widget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		CC00TEST000000000000 /* Dot Sync Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3300TEST000000000000 /* Build configuration list for PBXNativeTarget "Dot Sync Tests" */;
+			buildPhases = (
+				EE00TEST000000000000 /* Sources */,
+				FF00TEST000000000000 /* Frameworks */,
+				1100TEST000000000000 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6600TEST000000000000 /* PBXTargetDependency */,
+			);
+			name = "Dot Sync Tests";
+			productName = "Dot Sync Tests";
+			productReference = DD00TEST000000000000 /* Dot Sync Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -381,6 +460,7 @@
 			targets = (
 				2DF55476B60C019A06D43A5B /* Dot Sync */,
 				39356410B944FA42AC688BE7 /* Dot Sync Widget */,
+				CC00TEST000000000000 /* Dot Sync Tests */,
 			);
 		};
 /* End PBXProject section */
@@ -398,6 +478,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				EC0F72804FAB0A2D933A5B76 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1100TEST000000000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -450,6 +537,7 @@
 				BE62006E408C2D80D66778D0 /* AskAIView.swift in Sources */,
 				041D0C622187CEF0AB1D5CC1 /* AIFeaturesDashboard.swift in Sources */,
 				60EAB7E654438C3F77CA734D /* AIBackendManager.swift in Sources */,
+				BB00NOVA000000000001 /* NovaAPIServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -463,6 +551,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE00TEST000000000000 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB00TEST000000000001 /* ConfigFileTests.swift in Sources */,
+				BB00TEST000000000002 /* SecurityScannerTests.swift in Sources */,
+				BB00TEST000000000003 /* ThreeWayMergeTests.swift in Sources */,
+				BB00TEST000000000004 /* FileDiscoveryServiceTests.swift in Sources */,
+				BB00TEST000000000005 /* SyncProfileTests.swift in Sources */,
+				BB00TEST000000000006 /* SyncOperationTests.swift in Sources */,
+				BB00TEST000000000007 /* CloudProviderTests.swift in Sources */,
+				BB00TEST000000000008 /* SyncHookTests.swift in Sources */,
+				BB00TEST000000000009 /* MachineInfoTests.swift in Sources */,
+				BB00TEST00000000000A /* FilesystemIntegrationTests.swift in Sources */,
+				BB00TEST00000000000B /* SyncProgressTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -471,6 +577,12 @@
 			name = "Dot Sync Widget";
 			target = 39356410B944FA42AC688BE7 /* Dot Sync Widget */;
 			targetProxy = A970A5A7B2086C6294DCE26D /* PBXContainerItemProxy */;
+		};
+		6600TEST000000000000 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Dot Sync";
+			target = 2DF55476B60C019A06D43A5B /* Dot Sync */;
+			targetProxy = 7700TEST000000000000 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -678,6 +790,40 @@
 			};
 			name = Release;
 		};
+		4400TEST000000000000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.dotsync.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dot Sync.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dot Sync";
+			};
+			name = Debug;
+		};
+		5500TEST000000000000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jordankoch.dotsync.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dot Sync.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dot Sync";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -704,6 +850,15 @@
 			buildConfigurations = (
 				F3BCBDE26B4CC5AFB0273CF5 /* Release */,
 				E81B0F692098857173D58A44 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3300TEST000000000000 /* Build configuration list for PBXNativeTarget "Dot Sync Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4400TEST000000000000 /* Debug */,
+				5500TEST000000000000 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

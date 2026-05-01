@@ -4,6 +4,7 @@
 ![Platform](https://img.shields.io/badge/platform-macOS%2013.0%2B-lightgrey)
 ![Swift](https://img.shields.io/badge/swift-5.0-orange)
 ![License](https://img.shields.io/badge/license-MIT-blue)
+![Tests](https://img.shields.io/badge/tests-190%20passed-brightgreen)
 
 **Smart dotfile synchronization across machines using cloud storage, with real-time file watching, credential scanning, and three-way merge.**
 
@@ -567,6 +568,41 @@ Disable auto-sync temporarily. Reduce the number of monitored files. Increase th
 
 **Conflict resolution loop:**
 Choose "Keep Local" or "Use Remote" definitively. Avoid repeatedly skipping conflicts. For complex configs, export both versions and merge manually.
+
+---
+
+## Testing
+
+### Test Suite (190 tests)
+
+Dot Sync includes a comprehensive XCTest suite covering unit, functional, security, and integration tests.
+
+**Run tests:**
+```bash
+xcodebuild test -project "Dot Sync.xcodeproj" -scheme "Dot Sync" \
+  -destination "platform=macOS,arch=arm64"
+```
+
+| Test Class | Tests | Coverage |
+|---|---|---|
+| ConfigFileTests | 20 | Models, Codable, Hashable, formatting |
+| SecurityScannerTests | 23 | Credential detection, sanitization, safe file handling |
+| ThreeWayMergeTests | 19 | Merge logic, conflict markers, real-world configs |
+| FileDiscoveryServiceTests | 17 | Categorization, priority, filtering |
+| SyncProfileTests | 16 | Profile matching, include/exclude, Codable |
+| SyncOperationTests | 12 | Direction, status, merge attempts |
+| CloudProviderTests | 20 | Provider config, credentials, storage paths |
+| SyncHookTests | 20 | Hook matching, execution, command injection prevention |
+| MachineInfoTests | 11 | Roles, machine ID, metadata |
+| SyncProgressTests | 18 | Progress calc, toast messages, failure tracking |
+| FilesystemIntegrationTests | 14 | Checksum, backup, symlinks, path traversal, concurrency |
+
+**Security tests verify:**
+- AWS key, Stripe key, JWT, Bearer token, SSH key, password detection
+- Command injection prevention via environment variable isolation
+- Path traversal blocked by URL standardization
+- Credential truncation in scan reports (no full secrets in logs)
+- Symlink safety and exclude pattern enforcement
 
 ---
 

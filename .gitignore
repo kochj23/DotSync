@@ -112,7 +112,7 @@ credentials.json
 # OAuth Credentials
 oauth_client_id.txt
 oauth_client_secret.txt
-work_oauth_*.json
+*_oauth_*.json
 
 # Certificate Pinning Hashes
 certificate_hashes.txt

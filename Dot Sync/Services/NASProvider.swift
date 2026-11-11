@@ -33,7 +33,7 @@ class NASProvider: BaseCloudProvider, CloudStorageProtocol {
         let protocolScheme = share.contains("nfs://") ? "" : "smb://"
         let urlString = "\(protocolScheme)\(server)/\(share)"
 
-        if let url = URL(string: urlString) {
+        if URL(string: urlString) != nil {
             // Check if already mounted
             let volumes = fileManager.mountedVolumeURLs(includingResourceValuesForKeys: nil, options: [])
             if let mounted = volumes?.first(where: { $0.path.contains(share) }) {
@@ -94,7 +94,7 @@ class NASProvider: BaseCloudProvider, CloudStorageProtocol {
         if let enumerator = fileManager.enumerator(at: configsURL,
                                                    includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey],
                                                    options: [.skipsHiddenFiles]) {
-            for case let fileURL as URL in enumerator {
+            while let fileURL = enumerator.nextObject() as? URL {
                 var isDirectory: ObjCBool = false
                 guard fileManager.fileExists(atPath: fileURL.path, isDirectory: &isDirectory),
                       !isDirectory.boolValue else {

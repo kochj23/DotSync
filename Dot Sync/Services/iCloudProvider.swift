@@ -159,7 +159,7 @@ class iCloudProvider: BaseCloudProvider, CloudStorageProtocol {
             return []
         }
 
-        for case let fileURL as URL in enumerator {
+        while let fileURL = enumerator.nextObject() as? URL {
             var isDirectory: ObjCBool = false
             guard fileManager.fileExists(atPath: fileURL.path, isDirectory: &isDirectory),
                   !isDirectory.boolValue else {

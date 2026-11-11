@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import NovaAIKit
 
 /// AI-powered configuration insights and recommendations
 @MainActor
@@ -17,8 +18,14 @@ class AIConfigInsights: ObservableObject {
     @Published var isAnalyzing = false
     @Published var lastHealthReport: HealthReport?
     @Published var recommendations: [Recommendation] = []
+    /// Where the last result came from ("AI · Ollama (model)" / "Built-in").
+    @Published var lastSource: NovaAISource?
 
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     // MARK: - Data Models
 
@@ -164,10 +171,6 @@ class AIConfigInsights: ObservableObject {
     }
 
     private func analyzeConfigHealth(content: String, filename: String, filepath: String) async -> HealthReport.ConfigHealthResult {
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return basicHealthCheck(content: content, filename: filename)
-        }
-
         let prompt = """
         Analyze this configuration file for health issues.
 
@@ -192,21 +195,21 @@ class AIConfigInsights: ObservableObject {
         If no issues: respond with SCORE: 100
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a configuration file expert. Check for real issues only - avoid false positives. Be helpful with fix suggestions.",
-                temperature: 0.2,
-                maxTokens: 2048
-            )
-
-            return parseHealthCheckResult(response, filename: filename)
-        } catch {
-            return basicHealthCheck(content: content, filename: filename)
-        }
+        let lineCount = content.components(separatedBy: .newlines).count
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a configuration file expert. Check for real issues only - avoid false positives. Be helpful with fix suggestions.",
+            temperature: 0.2,
+            maxTokens: 2048,
+            parse: { try Self.validateHealthCheck($0, filename: filename, lineCount: lineCount) },
+            fallback: { Self.basicHealthCheck(content: content, filename: filename) }
+        )
+        lastSource = result.source
+        return result.value
     }
 
-    private func basicHealthCheck(content: String, filename: String) -> HealthReport.ConfigHealthResult {
+    nonisolated static func basicHealthCheck(content: String, filename: String) -> HealthReport.ConfigHealthResult {
         var issues: [HealthReport.HealthIssue] = []
         let lines = content.components(separatedBy: .newlines)
 
@@ -259,10 +262,6 @@ class AIConfigInsights: ObservableObject {
         isAnalyzing = true
         defer { isAnalyzing = false }
 
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return getStaticBestPractices(for: config.filename)
-        }
-
         let prompt = """
         Review this configuration file and suggest best practices.
 
@@ -281,21 +280,21 @@ class AIConfigInsights: ObservableObject {
         REC|<category:security/performance/bestPractice/modernization/cleanup>|<priority:high/medium/low>|<title>|<description>|<suggested_change_or_NA>
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a DevOps best practices expert. Provide actionable, specific recommendations. Focus on high-value improvements.",
-                temperature: 0.3,
-                maxTokens: 2048
-            )
-
-            return parseRecommendations(response, filename: config.filename)
-        } catch {
-            return getStaticBestPractices(for: config.filename)
-        }
+        let filename = config.filename
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a DevOps best practices expert. Provide actionable, specific recommendations. Focus on high-value improvements.",
+            temperature: 0.3,
+            maxTokens: 2048,
+            parse: { try Self.validateRecommendations($0, filename: filename) },
+            fallback: { Self.getStaticBestPractices(for: filename) }
+        )
+        lastSource = result.source
+        return result.value
     }
 
-    private func getStaticBestPractices(for filename: String) -> [Recommendation] {
+    nonisolated static func getStaticBestPractices(for filename: String) -> [Recommendation] {
         var recs: [Recommendation] = []
 
         if filename.contains("gitconfig") {
@@ -330,10 +329,6 @@ class AIConfigInsights: ObservableObject {
         isAnalyzing = true
         defer { isAnalyzing = false }
 
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return basicShellAnalysis(content: content, filename: filename)
-        }
-
         let prompt = """
         Analyze this shell configuration for optimization opportunities.
 
@@ -358,21 +353,20 @@ class AIConfigInsights: ObservableObject {
         ...
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a shell scripting expert focused on performance. Identify real performance issues and provide specific fixes.",
-                temperature: 0.2,
-                maxTokens: 2048
-            )
-
-            return parseShellAnalysis(response, filename: filename)
-        } catch {
-            return basicShellAnalysis(content: content, filename: filename)
-        }
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a shell scripting expert focused on performance. Identify real performance issues and provide specific fixes.",
+            temperature: 0.2,
+            maxTokens: 2048,
+            parse: { try Self.validateShellAnalysis($0, filename: filename) },
+            fallback: { Self.basicShellAnalysis(content: content, filename: filename) }
+        )
+        lastSource = result.source
+        return result.value
     }
 
-    private func basicShellAnalysis(content: String, filename: String) -> ShellAnalysis {
+    nonisolated static func basicShellAnalysis(content: String, filename: String) -> ShellAnalysis {
         var issues: [ShellAnalysis.ShellIssue] = []
         var optimizations: [String] = []
 
@@ -487,6 +481,51 @@ class AIConfigInsights: ObservableObject {
         }
     }
 
+    // MARK: - Validators (reject replies that ignore the format; clamp values to their legal range)
+
+    /// Rejects a reply without SCORE:; clamps the score to 0...100 and drops line numbers outside the file.
+    nonisolated static func validateHealthCheck(_ response: String, filename: String, lineCount: Int) throws -> HealthReport.ConfigHealthResult {
+        let lines = response.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
+        guard let scoreLine = lines.first(where: { $0.uppercased().hasPrefix("SCORE:") }),
+              Int(scoreLine.dropFirst(6).trimmingCharacters(in: .whitespaces).components(separatedBy: CharacterSet.decimalDigits.inverted).first ?? "") != nil else {
+            throw NovaAIValidationError("expected a numeric SCORE: line")
+        }
+        let r = parseHealthCheckResult(lines.joined(separator: "\n"), filename: filename)
+        let score = min(max(r.score, 0), 100)
+        let issues = r.issues.map { i -> HealthReport.HealthIssue in
+            guard let n = i.lineNumber, n < 1 || n > lineCount else { return i }
+            return HealthReport.HealthIssue(severity: i.severity, description: i.description, fix: i.fix, lineNumber: nil)
+        }
+        return HealthReport.ConfigHealthResult(filename: filename, score: score, issues: issues, status: status(for: score))
+    }
+
+    /// Rejects a reply without REC lines.
+    nonisolated static func validateRecommendations(_ response: String, filename: String) throws -> [Recommendation] {
+        let lines = response.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
+        let recs = parseRecommendations(lines.joined(separator: "\n"), filename: filename)
+        guard !recs.isEmpty else { throw NovaAIValidationError("expected REC|category|priority|title|description|change lines") }
+        return recs
+    }
+
+    /// Rejects a reply without STARTUP_IMPACT:; clamps it to fast/moderate/slow/very_slow.
+    nonisolated static func validateShellAnalysis(_ response: String, filename: String) throws -> ShellAnalysis {
+        let lines = response.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
+        guard lines.contains(where: { $0.uppercased().hasPrefix("STARTUP_IMPACT:") }) else {
+            throw NovaAIValidationError("expected a STARTUP_IMPACT: line")
+        }
+        let r = parseShellAnalysis(lines.joined(separator: "\n"), filename: filename)
+        let impact = r.startupTime.map { t in
+            ["very_slow", "slow", "moderate", "fast"].first { t.lowercased().replacingOccurrences(of: " ", with: "_").hasPrefix($0) } ?? "moderate"
+        }
+        return ShellAnalysis(filename: r.filename, startupTime: impact, issues: r.issues, optimizations: r.optimizations)
+    }
+
+    nonisolated static func status(for score: Int) -> HealthReport.HealthStatus {
+        if score >= 90 { return .healthy }
+        if score >= 70 { return .needsAttention }
+        return .problematic
+    }
+
     // MARK: - Parsing Helpers
 
     private func detectConfigType(_ filename: String) -> String {
@@ -500,7 +539,7 @@ class AIConfigInsights: ObservableObject {
         return "Config"
     }
 
-    private func parseHealthCheckResult(_ response: String, filename: String) -> HealthReport.ConfigHealthResult {
+    nonisolated static func parseHealthCheckResult(_ response: String, filename: String) -> HealthReport.ConfigHealthResult {
         var issues: [HealthReport.HealthIssue] = []
         var score = 100
 
@@ -521,12 +560,12 @@ class AIConfigInsights: ObservableObject {
                         severity: severity,
                         description: parts[3],
                         fix: parts[4] == "NA" ? nil : parts[4],
-                        lineNumber: Int(parts[2])
+                        lineNumber: Int(parts[2].trimmingCharacters(in: .whitespaces)).flatMap { $0 > 0 ? $0 : nil }
                     ))
                 }
             } else if line.uppercased().hasPrefix("SCORE:") {
                 let value = line.replacingOccurrences(of: "SCORE:", with: "", options: .caseInsensitive).trimmingCharacters(in: .whitespaces)
-                score = Int(value) ?? 100
+                score = Int(value.components(separatedBy: CharacterSet.decimalDigits.inverted).first ?? "") ?? 100
             }
         }
 
@@ -544,7 +583,7 @@ class AIConfigInsights: ObservableObject {
         )
     }
 
-    private func parseRecommendations(_ response: String, filename: String) -> [Recommendation] {
+    nonisolated static func parseRecommendations(_ response: String, filename: String) -> [Recommendation] {
         var recommendations: [Recommendation] = []
 
         for line in response.components(separatedBy: .newlines) {
@@ -585,7 +624,7 @@ class AIConfigInsights: ObservableObject {
         return recommendations
     }
 
-    private func parseShellAnalysis(_ response: String, filename: String) -> ShellAnalysis {
+    nonisolated static func parseShellAnalysis(_ response: String, filename: String) -> ShellAnalysis {
         var startupTime: String? = nil
         var issues: [ShellAnalysis.ShellIssue] = []
         var optimizations: [String] = []
@@ -610,7 +649,7 @@ class AIConfigInsights: ObservableObject {
                     issues.append(ShellAnalysis.ShellIssue(
                         type: type,
                         description: parts[3],
-                        lineNumber: Int(parts[2]),
+                        lineNumber: Int(parts[2].trimmingCharacters(in: .whitespaces)).flatMap { $0 > 0 ? $0 : nil },
                         suggestion: parts[4]
                     ))
                 }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import NovaAIKit
 
 struct PreferencesView: View {
     @StateObject private var profileManager = ProfileManager.shared
@@ -38,8 +39,14 @@ struct PreferencesView: View {
                     Label("Security", systemImage: "lock.shield")
                 }
                 .tag(3)
+
+            NovaAISettingsView(ai: AppAI.shared, footer: AppAI.footer)
+                .tabItem {
+                    Label("AI", systemImage: "sparkles")
+                }
+                .tag(4)
         }
-        .frame(width: 600, height: 500)
+        .frame(width: 640, height: 560)
     }
 }
 

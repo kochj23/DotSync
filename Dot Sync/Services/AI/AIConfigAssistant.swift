@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import NovaAIKit
 
 /// AI-powered configuration assistant
 @MainActor
@@ -17,9 +18,16 @@ class AIConfigAssistant: ObservableObject {
     @Published var isProcessing = false
     @Published var searchResults: [SearchResult] = []
     @Published var usageHistory: [ConfigUsageRecord] = []
+    /// Where the last result came from ("AI · Ollama (model)" / "Built-in").
+    @Published var lastSource: NovaAISource?
 
-    private let aiManager = AIBackendManager.shared
-    private let userDefaults = UserDefaults.standard
+    private let ai: NovaAI
+    private let userDefaults: UserDefaults
+
+    init(ai: NovaAI? = nil, userDefaults: UserDefaults = .standard) {
+        self.ai = ai ?? AppAI.shared
+        self.userDefaults = userDefaults
+    }
 
     // MARK: - Data Models
 
@@ -92,11 +100,9 @@ class AIConfigAssistant: ObservableObject {
         // First, do a quick keyword search
         var results = keywordSearch(query: query, in: configs)
 
-        // If AI is available, enhance with semantic search
-        if aiManager.aiEnabled, aiManager.activeBackend != nil {
-            let semanticResults = await semanticSearch(query: query, in: configs)
-            results = mergeSearchResults(keyword: results, semantic: semanticResults)
-        }
+        // Enhance with AI semantic search (built-in: keyword results only)
+        let semanticResults = await semanticSearch(query: query, in: configs)
+        results = mergeSearchResults(keyword: results, semantic: semanticResults)
 
         searchResults = results.sorted { $0.relevanceScore > $1.relevanceScore }
         return searchResults
@@ -160,18 +166,18 @@ class AIConfigAssistant: ObservableObject {
         Only return relevant matches. If nothing matches, respond with: NO_MATCHES
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a configuration search expert. Find settings that semantically match the user's query, even if exact keywords don't match.",
-                temperature: 0.2,
-                maxTokens: 2048
-            )
-
-            return parseSemanticSearchResults(response, configs: configSummaries.map { $0.config })
-        } catch {
-            return []
-        }
+        let candidates = configSummaries.map { $0.config }
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a configuration search expert. Find settings that semantically match the user's query, even if exact keywords don't match.",
+            temperature: 0.2,
+            maxTokens: 2048,
+            parse: { try Self.validateSemanticSearch($0, configs: candidates) },
+            fallback: { [] }
+        )
+        lastSource = result.source
+        return result.value
     }
 
     private func mergeSearchResults(keyword: [SearchResult], semantic: [SearchResult]) -> [SearchResult] {
@@ -196,10 +202,6 @@ class AIConfigAssistant: ObservableObject {
     func generateConfig(description: String, targetFile: String, existingContent: String?) async -> ConfigGenerationResult? {
         isProcessing = true
         defer { isProcessing = false }
-
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return nil
-        }
 
         let fileType = detectFileType(targetFile)
         let existingSection = existingContent != nil ?
@@ -226,18 +228,18 @@ class AIConfigAssistant: ObservableObject {
         CONFIG_END
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a configuration expert. Generate clean, well-documented, best-practice configurations. Include comments explaining non-obvious settings.",
-                temperature: 0.3,
-                maxTokens: 4096
-            )
-
-            return parseConfigGenerationResult(response, targetFile: targetFile)
-        } catch {
-            return nil
-        }
+        // Built-in: none (generation needs AI) — callers show "AI unavailable" for nil.
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a configuration expert. Generate clean, well-documented, best-practice configurations. Include comments explaining non-obvious settings.",
+            temperature: 0.3,
+            maxTokens: 4096,
+            parse: { try Self.validateConfigGeneration($0, targetFile: targetFile) },
+            fallback: { nil }
+        )
+        lastSource = result.source
+        return result.value
     }
 
     // MARK: - Migration Assistant
@@ -250,10 +252,6 @@ class AIConfigAssistant: ObservableObject {
     ) async -> MigrationPlan? {
         isProcessing = true
         defer { isProcessing = false }
-
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return nil
-        }
 
         let sourceTool = detectToolFromFilename(sourceFile)
 
@@ -280,18 +278,18 @@ class AIConfigAssistant: ObservableObject {
         ...
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a developer tools migration expert. Create practical, step-by-step migration plans. Be thorough but realistic about what can be automated.",
-                temperature: 0.2,
-                maxTokens: 4096
-            )
-
-            return parseMigrationPlan(response, sourceFile: sourceFile, targetTool: targetTool)
-        } catch {
-            return nil
-        }
+        // Built-in: none (a migration plan needs AI) — callers show "AI unavailable" for nil.
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a developer tools migration expert. Create practical, step-by-step migration plans. Be thorough but realistic about what can be automated.",
+            temperature: 0.2,
+            maxTokens: 4096,
+            parse: { try Self.validateMigrationPlan($0, sourceFile: sourceFile, targetTool: targetTool) },
+            fallback: { nil }
+        )
+        lastSource = result.source
+        return result.value
     }
 
     // MARK: - Sync Priority Learning
@@ -360,16 +358,12 @@ class AIConfigAssistant: ObservableObject {
             priorities[config.path] = calculateLearnedPriority(for: config)
         }
 
-        // If AI available, enhance with content analysis
-        if aiManager.aiEnabled, aiManager.activeBackend != nil {
-            let aiPriorities = await analyzeConfigImportance(configs: configs)
-            // Merge AI suggestions (AI can upgrade priority, but not downgrade learned priority)
-            for (path, aiPriority) in aiPriorities {
-                if let current = priorities[path], aiPriority > current {
-                    priorities[path] = aiPriority
-                } else if priorities[path] == nil {
-                    priorities[path] = aiPriority
-                }
+        // Enhance with AI content analysis (built-in: learned priorities only).
+        // AI can upgrade a priority, never downgrade the learned one, and only for files we asked about.
+        let aiPriorities = await analyzeConfigImportance(configs: configs)
+        for (path, aiPriority) in aiPriorities {
+            if let current = priorities[path], aiPriority > current {
+                priorities[path] = aiPriority
             }
         }
 
@@ -395,18 +389,18 @@ class AIConfigAssistant: ObservableObject {
         PRIORITY|<filepath>|<critical/high/medium/low>
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are evaluating configuration file importance. Be practical - prioritize files that affect daily workflow.",
-                temperature: 0.2,
-                maxTokens: 1024
-            )
-
-            return parseAIPriorities(response)
-        } catch {
-            return [:]
-        }
+        let knownPaths = Set(configs.prefix(20).map(\.path))
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are evaluating configuration file importance. Be practical - prioritize files that affect daily workflow.",
+            temperature: 0.2,
+            maxTokens: 1024,
+            parse: { try Self.validatePriorities($0, knownPaths: knownPaths) },
+            fallback: { [:] }
+        )
+        lastSource = result.source
+        return result.value
     }
 
     // MARK: - Storage Helpers
@@ -423,6 +417,53 @@ class AIConfigAssistant: ObservableObject {
         if let data = try? JSONEncoder().encode(records) {
             userDefaults.set(data, forKey: "AIConfigAssistant_UsageHistory")
         }
+    }
+
+    // MARK: - Validators (reject replies that ignore the format; clamp values to their legal range)
+
+    /// Rejects a reply with neither NO_MATCHES nor a MATCH line; drops out-of-range indices; clamps relevance to 0...1.
+    nonisolated static func validateSemanticSearch(_ response: String, configs: [ConfigFile]) throws -> [SearchResult] {
+        let lines = response.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
+        guard response.contains("NO_MATCHES") || lines.contains(where: { $0.hasPrefix("MATCH|") }) else {
+            throw NovaAIValidationError("expected MATCH|… lines or NO_MATCHES")
+        }
+        return parseSemanticSearchResults(lines.joined(separator: "\n"), configs: configs).map { r in
+            let score = r.relevanceScore.isFinite ? min(max(r.relevanceScore, 0), 1) : 0.5
+            return SearchResult(filename: r.filename, filepath: r.filepath, matchType: r.matchType,
+                                matchedContent: String(r.matchedContent.prefix(500)), lineNumber: r.lineNumber,
+                                relevanceScore: score)
+        }
+    }
+
+    /// Rejects a reply without content between CONFIG_START and CONFIG_END.
+    nonisolated static func validateConfigGeneration(_ response: String, targetFile: String) throws -> ConfigGenerationResult? {
+        guard let r = parseConfigGenerationResult(response, targetFile: targetFile) else {
+            throw NovaAIValidationError("expected the configuration between CONFIG_START and CONFIG_END")
+        }
+        return r
+    }
+
+    /// Rejects a reply without STEP lines; renumbers steps 1…n.
+    nonisolated static func validateMigrationPlan(_ response: String, sourceFile: String, targetTool: String) throws -> MigrationPlan? {
+        guard let plan = parseMigrationPlan(response, sourceFile: sourceFile, targetTool: targetTool) else {
+            throw NovaAIValidationError("expected STEP|… lines")
+        }
+        let steps = plan.steps.enumerated().map { i, s in
+            MigrationPlan.MigrationStep(order: i + 1, description: s.description, originalContent: s.originalContent,
+                                        newContent: s.newContent, isManual: s.isManual)
+        }
+        let effort = ["minimal", "moderate", "significant"].first { plan.estimatedEffort.lowercased().hasPrefix($0) } ?? "moderate"
+        return MigrationPlan(sourceFile: plan.sourceFile, targetFile: plan.targetFile, steps: steps,
+                             warnings: plan.warnings, estimatedEffort: effort)
+    }
+
+    /// Rejects a reply without PRIORITY lines; keeps only files that were asked about.
+    nonisolated static func validatePriorities(_ response: String, knownPaths: Set<String>) throws -> [String: ConfigUsageRecord.SyncPriority] {
+        let lines = response.components(separatedBy: .newlines).map { $0.trimmingCharacters(in: .whitespaces) }
+        guard lines.contains(where: { $0.hasPrefix("PRIORITY|") }) else {
+            throw NovaAIValidationError("expected PRIORITY|<filepath>|<priority> lines")
+        }
+        return parseAIPriorities(lines.joined(separator: "\n")).filter { knownPaths.contains($0.key) }
     }
 
     // MARK: - Parsing Helpers
@@ -452,7 +493,7 @@ class AIConfigAssistant: ObservableObject {
         return "Unknown"
     }
 
-    private func parseSemanticSearchResults(_ response: String, configs: [ConfigFile]) -> [SearchResult] {
+    nonisolated static func parseSemanticSearchResults(_ response: String, configs: [ConfigFile]) -> [SearchResult] {
         if response.contains("NO_MATCHES") { return [] }
 
         var results: [SearchResult] = []
@@ -461,11 +502,11 @@ class AIConfigAssistant: ObservableObject {
             if line.hasPrefix("MATCH|") {
                 let parts = line.components(separatedBy: "|")
                 if parts.count >= 5 {
-                    let index = Int(parts[1]) ?? -1
+                    let index = Int(parts[1].trimmingCharacters(in: .whitespaces)) ?? -1
                     guard index >= 0 && index < configs.count else { continue }
 
                     let config = configs[index]
-                    let relevance = Double(parts[2]) ?? 0.5
+                    let relevance = Double(parts[2].trimmingCharacters(in: .whitespaces)) ?? 0.5
 
                     results.append(SearchResult(
                         filename: config.filename,
@@ -482,7 +523,7 @@ class AIConfigAssistant: ObservableObject {
         return results
     }
 
-    private func parseConfigGenerationResult(_ response: String, targetFile: String) -> ConfigGenerationResult? {
+    nonisolated static func parseConfigGenerationResult(_ response: String, targetFile: String) -> ConfigGenerationResult? {
         var explanation = ""
         var warnings: [String] = []
         var generatedContent = ""
@@ -515,7 +556,7 @@ class AIConfigAssistant: ObservableObject {
         )
     }
 
-    private func parseMigrationPlan(_ response: String, sourceFile: String, targetTool: String) -> MigrationPlan? {
+    nonisolated static func parseMigrationPlan(_ response: String, sourceFile: String, targetTool: String) -> MigrationPlan? {
         var effort = "moderate"
         var warnings: [String] = []
         var steps: [MigrationPlan.MigrationStep] = []
@@ -558,15 +599,15 @@ class AIConfigAssistant: ObservableObject {
         )
     }
 
-    private func parseAIPriorities(_ response: String) -> [String: ConfigUsageRecord.SyncPriority] {
+    nonisolated static func parseAIPriorities(_ response: String) -> [String: ConfigUsageRecord.SyncPriority] {
         var priorities: [String: ConfigUsageRecord.SyncPriority] = [:]
 
         for line in response.components(separatedBy: .newlines) {
             if line.hasPrefix("PRIORITY|") {
                 let parts = line.components(separatedBy: "|")
                 if parts.count >= 3 {
-                    let filepath = parts[1]
-                    let priorityStr = parts[2].lowercased()
+                    let filepath = parts[1].trimmingCharacters(in: .whitespaces)
+                    let priorityStr = parts[2].trimmingCharacters(in: .whitespaces).lowercased()
 
                     let priority: ConfigUsageRecord.SyncPriority = {
                         switch priorityStr {

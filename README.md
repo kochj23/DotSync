@@ -2,11 +2,14 @@
 
 ![Build](https://github.com/kochj23/DotSync/actions/workflows/build.yml/badge.svg)
 ![Platform](https://img.shields.io/badge/platform-macOS%2013.0%2B-lightgrey)
-![Swift](https://img.shields.io/badge/swift-5.0-orange)
+![Swift](https://img.shields.io/badge/swift-5-orange)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Tests](https://img.shields.io/badge/tests-190%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-220%20passed-brightgreen)
 
-**Smart dotfile synchronization across machines using cloud storage, with real-time file watching, credential scanning, and three-way merge.**
+**Smart dotfile synchronization across Macs through cloud storage: config discovery, credential scanning before upload,
+three-way merge, real-time file watching, a WidgetKit widget, and optional AI assistance (NovaAIKit) that always falls
+back to built-in rules.**
 
 ![Dot Sync](Screenshots/main-window.png)
 
@@ -17,13 +20,16 @@
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Features](#features)
+- [AI](#ai)
 - [Installation](#installation)
+- [Building from Source](#building-from-source)
 - [Configuration](#configuration)
 - [Cloud Provider Setup](#cloud-provider-setup)
 - [Sync Profiles and Machine Roles](#sync-profiles-and-machine-roles)
 - [Security](#security)
 - [Widget Extension](#widget-extension)
 - [Nova API Integration](#nova-api-integration)
+- [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
 - [Version History](#version-history)
 - [License](#license)
@@ -32,170 +38,95 @@
 
 ## Overview
 
-Dot Sync is a native macOS application that synchronizes developer configuration files (dotfiles) across multiple machines through cloud storage backends. Unlike iCloud, which handles Documents and Desktop, Dot Sync targets the configuration files iCloud ignores: shell profiles, git settings, editor configs, cloud CLI configurations, and development tool preferences.
+Dot Sync is a native macOS app that keeps developer configuration files (dotfiles) in sync across machines through a
+cloud or NAS backend. It targets what iCloud ignores: shell profiles, git settings, editor configs, cloud CLI configs
+and tool preferences.
 
-The app discovers config files automatically, scans them for credentials before upload, supports bidirectional sync with conflict resolution, and monitors files in real time for changes using DispatchSource-based file watching.
+It discovers config files automatically, refuses to upload anything that looks like a credential, syncs in both
+directions with conflict detection and three-way merge, and can watch files and sync on change. An optional AI layer
+(local Ollama/MLX first, cloud only if you add a key) explains changes, suggests merges, audits configs and answers
+questions; with AI off, every one of those features still works from built-in rules.
 
-**Who this is for:**
-
-- Developers keeping shell configs, editor settings, and tool configs in sync
-- DevOps engineers synchronizing cloud CLI configurations across workstations
-- System administrators maintaining consistent environments across multiple Macs
-- Anyone who has spent hours rebuilding their environment on a new machine
+**Who this is for:** developers and DevOps/SRE engineers who keep several Macs configured the same way.
 
 ---
 
 ## Architecture
 
-```
-+------------------------------------------------------------------+
-|                        Dot Sync Application                      |
-+------------------------------------------------------------------+
-|                                                                  |
-|  +------------------+   +------------------+   +---------------+ |
-|  |   SwiftUI Views  |   |   View Models    |   |  Menu Bar     | |
-|  |                  |   |                  |   |  Extra        | |
-|  | ContentView      |   | DotSyncViewModel |   | MenuBarView   | |
-|  | FileBrowserView  |   | CloudViewModel   |   | StatusBarView | |
-|  | ConflictView     |   +--------+---------+   +-------+-------+ |
-|  | PreferencesView  |            |                      |        |
-|  | DiffView         |            v                      |        |
-|  | VisualMergeEditor|   +--------+---------+            |        |
-|  | AskAIView        |   |   Sync Engine    +<-----------+        |
-|  +------------------+   |                  |                     |
-|                         | - Compare local  |                     |
-|                         |   vs remote      |                     |
-|                         | - Detect         |                     |
-|                         |   conflicts      |                     |
-|                         | - Execute sync   |                     |
-|                         | - Dry-run mode   |                     |
-|                         +----+-------+-----+                     |
-|                              |       |                           |
-|               +--------------+       +---------------+           |
-|               v                                      v           |
-|  +------------+----------+            +--------------+--------+  |
-|  | File Discovery        |            | Cloud Storage         |  |
-|  | Service                |            | Protocol              |  |
-|  |                       |            |                       |  |
-|  | - Pattern scan ~/     |            | upload()              |  |
-|  | - Categorize files    |            | download()            |  |
-|  | - Checksum calc       |            | listFiles()           |  |
-|  | - Priority ranking    |            | delete()              |  |
-|  | - Exclude unsafe      |            | getMetadata()         |  |
-|  +-----------+-----------+            | testConnection()      |  |
-|              |                        +---+---+---+---+---+---+  |
-|              v                            |   |   |   |   |      |
-|  +-----------+-----------+                |   |   |   |   |      |
-|  | Security Scanner      |                v   v   v   v   v      |
-|  |                       |     +----------+--+--+--+--+--+----+  |
-|  | - Regex credential    |     | S3  Azure GCP iCloud NAS     |  |
-|  |   detection           |     | OneDrive  Google Drive       |  |
-|  | - API key patterns    |     | S3-Compatible               |  |
-|  | - Sanitize configs    |     +------------------------------+  |
-|  | - Exclude SSH keys    |                                       |
-|  +-----------+-----------+     +------------------------------+  |
-|              |                 | File Watcher (DispatchSource) |  |
-|              v                 |                              |  |
-|  +-----------+-----------+     | - Per-file fd monitoring     |  |
-|  | Sync Hooks            |     | - 5s debounce timer          |  |
-|  |                       |     | - Auto-sync on change        |  |
-|  | Pre-sync: validate    |     | - Proper fd cleanup          |  |
-|  | Post-sync: reload     |     +------------------------------+  |
-|  | Env var injection     |                                       |
-|  | (no shell interp)    |     +------------------------------+  |
-|  +-----------------------+     | Three-Way Merge              |  |
-|                                |                              |  |
-|  +-----------------------+     | - Ancestor/local/remote diff |  |
-|  | AI Services           |     | - Auto-merge safe changes    |  |
-|  |                       |     | - Conflict markers           |  |
-|  | ConfigAssistant       |     +------------------------------+  |
-|  | ConfigInsights        |                                       |
-|  | MergeAssistant        |     +------------------------------+  |
-|  | SecurityAnalyzer      |     | Widget Extension (WidgetKit) |  |
-|  +-----------------------+     |                              |  |
-|                                | - Small/Medium/Large sizes   |  |
-|  +-----------------------+     | - Shared via App Groups      |  |
-|  | Nova API Server       |     | - Timeline-based refresh     |  |
-|  | (port 37446)          |     +------------------------------+  |
-|  | Loopback only         |                                       |
-|  +-----------------------+                                       |
-|                                                                  |
-+------------------------------------------------------------------+
-                                  |
-                                  v
-                    +-------------+-------------+
-                    |   macOS Keychain           |
-                    |   (all credentials)        |
-                    +---------------------------+
+```mermaid
+flowchart TB
+    subgraph UI["SwiftUI"]
+        CV[ContentView<br/>sidebar + file list]
+        MB[MenuBarExtra<br/>MenuBarView]
+        PV[Settings<br/>General · Cloud · Profiles · Security · AI]
+        AID[AIFeaturesDashboard<br/>AskAIView]
+        DV[DiffView · VisualMergeEditor<br/>ConflictResolutionView]
+    end
+
+    subgraph Core["Sync core"]
+        FD[FileDiscoveryService<br/>scan ~ · categorize · checksum]
+        SS[SecurityScanner<br/>regex credential detection]
+        SE[SyncEngine<br/>compare · dry run · sync]
+        TW[ThreeWayMerge]
+        HK[SyncHooks<br/>env-var injection]
+        FW[FileWatcher<br/>DispatchSource + 5 s debounce]
+        PM[ProfileManager<br/>profiles · machine role]
+    end
+
+    subgraph Cloud["CloudStorageProtocol"]
+        S3[S3 / S3-compatible]
+        AZ[Azure Blob]
+        GCS[Google Cloud Storage]
+        IC[iCloud Drive]
+        NAS[NAS SMB/NFS]
+        OD[OneDrive]
+        GD[Google Drive]
+    end
+
+    subgraph AI["AI services (NovaAIKit)"]
+        SA[AISecurityAnalyzer]
+        MA[AIMergeAssistant]
+        CI[AIConfigInsights]
+        CA[AIConfigAssistant]
+        APP[AppAI.shared<br/>NovaAI]
+    end
+
+    KC[(macOS Keychain<br/>cloud creds + AI keys)]
+    WG[Widget extension<br/>App Group]
+    NOVA[Nova API server<br/>127.0.0.1:37446]
+
+    CV --> FD --> SS
+    CV --> SE
+    MB --> SE
+    SE --> TW
+    SE --> HK
+    FW --> SE
+    PM --> SE
+    SE --> Cloud
+    Cloud --> KC
+    AID --> SA & MA & CI & CA
+    DV --> MA
+    SA & MA & CI & CA --> APP
+    APP --> KC
+    PV --> APP
+    SE --> WG
 ```
 
-### Project Structure
+### Project structure
 
 ```
-DotSync/
-|-- Dot Sync/
-|   |-- DotSyncApp.swift              App entry point, WindowGroup, MenuBarExtra
-|   |-- NovaAPIServer.swift           Local HTTP API (port 37446, loopback)
-|   |-- ModernDesign.swift            Design system and theme constants
-|   |-- Info.plist                    Bundle metadata (v1.2.0)
-|   |-- Models/
-|   |   |-- ConfigFile.swift          File model, categories, priorities, sync state
-|   |   |-- CloudProvider.swift       Provider types, config, credentials
-|   |   |-- SyncOperation.swift       Sync operation tracking
-|   |   |-- SyncProfile.swift         Sync profiles (Full, Minimal, Work, Home)
-|   |   |-- SyncProgress.swift        Progress tracking for UI
-|   |   |-- SyncHooks.swift           Pre/post sync hooks with env var injection
-|   |   |-- MachineInfo.swift         Machine identity, roles (Master/Client)
-|   |   +-- DownloadFailure.swift     Failure tracking model
-|   |-- Services/
-|   |   |-- SyncEngine.swift          Core sync logic, conflict detection, state
-|   |   |-- FileDiscoveryService.swift  Pattern-based config file scanner
-|   |   |-- FileWatcher.swift         DispatchSource real-time monitoring
-|   |   |-- SecurityScanner.swift     Credential detection and sanitization
-|   |   |-- CloudStorageProtocol.swift  Abstract provider interface
-|   |   |-- S3Provider.swift          AWS S3 implementation
-|   |   |-- AzureBlobProvider.swift   Azure Blob Storage
-|   |   |-- GCPProvider.swift         Google Cloud Storage
-|   |   |-- iCloudProvider.swift      iCloud Drive (FileManager-based)
-|   |   |-- NASProvider.swift         NAS via SMB/NFS
-|   |   |-- OneDriveProvider.swift    Microsoft OneDrive
-|   |   |-- GoogleDriveProvider.swift Google Drive
-|   |   |-- AWSHelper.swift           AWS authentication utilities
-|   |   |-- ThreeWayMerge.swift       Line-by-line three-way merge
-|   |   |-- NotificationService.swift macOS notification delivery
-|   |   +-- AI/
-|   |       |-- AIConfigAssistant.swift    AI-powered config help
-|   |       |-- AIConfigInsights.swift     Configuration analysis
-|   |       |-- AIMergeAssistant.swift     AI-assisted merge resolution
-|   |       +-- AISecurityAnalyzer.swift   AI security scanning
-|   +-- Views/
-|       |-- ContentView.swift         Main window layout
-|       |-- AskAIView.swift           AI assistant interface
-|       |-- AIFeaturesDashboard.swift  AI features overview
-|       |-- ConflictResolutionView.swift  Conflict dialog
-|       |-- DiffView.swift            Side-by-side diff display
-|       |-- VisualMergeEditor.swift   Interactive merge editor
-|       |-- PreferencesView.swift     Settings panel
-|       |-- MenuBarView.swift         Menu bar dropdown
-|       |-- StatusBarView.swift       Bottom status bar
-|       |-- SyncProgressView.swift    Sync progress indicators
-|       |-- FailureSummaryView.swift  Error report display
-|       +-- ToastNotificationView.swift  Toast-style alerts
-|-- Dot Sync Widget/
-|   |-- DotSyncWidget.swift           WidgetKit extension (S/M/L)
-|   +-- Info.plist
-|-- Shared/
-|   |-- SharedDataManager.swift       App Groups data bridge
-|   +-- WidgetData.swift              Widget data models
-|-- Dot Sync.xcodeproj/
-|-- .github/
-|   |-- workflows/build.yml           CI build verification
-|   |-- ISSUE_TEMPLATE/
-|   |-- PULL_REQUEST_TEMPLATE.md
-|   +-- dependabot.yml
-|-- LICENSE                           MIT License
-|-- SECURITY.md                       Security policy
-+-- CLOUD_SETUP_GUIDE.md             Detailed provider setup
+Dot Sync/
+  DotSyncApp.swift          App, menu bar extra, Settings scene, Nova API start
+  AI/AppAI.swift            The one NovaAI instance, legacy migration, AppAI.run helper
+  Models/                   ConfigFile, SyncProfile, SyncOperation, SyncHooks, MachineInfo, CloudProvider, ...
+  Services/                 SyncEngine, FileDiscoveryService, SecurityScanner, ThreeWayMerge, FileWatcher,
+                            cloud providers (S3, Azure, GCP, iCloud, NAS, OneDrive, Google Drive)
+  Services/AI/              AISecurityAnalyzer, AIMergeAssistant, AIConfigInsights, AIConfigAssistant
+  Views/                    ContentView, PreferencesView, AskAIView, AIFeaturesDashboard, DiffView, ...
+  NovaAPIServer.swift       Loopback status API
+Dot Sync Widget/            WidgetKit extension
+Shared/                     WidgetData, SharedDataManager (App Group)
+Dot Sync Tests/             XCTest suite (220 tests)
 ```
 
 ---
@@ -283,12 +214,24 @@ Machines are identified by their hardware UUID (via `IOPlatformExpertDevice`), p
 
 ### AI-Assisted Features
 
-Four AI service modules provide intelligent assistance:
+| Feature | What AI adds | Built-in result when AI is off or unreachable |
+|---|---|---|
+| Credential detection (`AISecurityAnalyzer`) | Finds obfuscated / base64 / connection-string secrets | Regex scan (AWS, Stripe, GitHub, Slack, JWT, bearer, private keys, passwords) |
+| Config security audit | Weak settings, permissions, deprecated options | Same regex scan per file |
+| Change anomaly detection | Flags suspicious modifications | Flags >30 % line-count change |
+| Merge suggestion (`AIMergeAssistant`) | Keep local / keep remote / merged file with confidence | "Manual review" with line counts |
+| Semantic merge | Structure-aware merge of shell, git, YAML, INI | Line-based `ThreeWayMerge` |
+| Change explanation | Plain-English summary + impact | Added/removed line counts + impact level |
+| Health check (`AIConfigInsights`) | Syntax/deprecation issues + score | Trailing whitespace / long-line checks + score |
+| Best practices | File-specific recommendations | Static recommendations (git signing, lazy completions) |
+| Shell optimization | Slow startup, conflicts, inefficiencies | nvm / rbenv / duplicate-alias detection |
+| Natural-language search (`AIConfigAssistant`) | Semantic matches | Keyword search |
+| Sync priorities | Upgrades priorities by importance | Usage-learned priorities |
+| Config generation, migration plans | Generated content / step plan | Unavailable (returns nothing; UI says AI is needed) |
+| Ask AI chat | Answers from your configs | Keyword search results, or a message saying AI is off/unreachable |
 
-- **AIConfigAssistant** -- Answers questions about config file syntax and options
-- **AIConfigInsights** -- Analyzes configurations for optimization opportunities
-- **AIMergeAssistant** -- Helps resolve complex merge conflicts
-- **AISecurityAnalyzer** -- Scans configs for security issues beyond regex patterns
+Every AI result is validated before use (see [AI](#ai)) and labeled with its source ("AI · Ollama (model)" or
+"Built-in").
 
 ### Menu Bar Integration
 
@@ -302,51 +245,78 @@ Dot Sync lives in the macOS menu bar with a status icon that reflects current st
 
 ---
 
+## AI
+
+Dot Sync uses [NovaAIKit](https://github.com/kochj23/NovaAIKit) 1.0.0, the shared AI layer for Jordan's macOS apps. The
+app has no AI client code of its own.
+
+```mermaid
+flowchart LR
+    F[AI feature<br/>e.g. detectCredentials] --> R[AppAI.run]
+    R -->|AI off| FB[Built-in rules]
+    R -->|AI on| N[NovaAI<br/>Auto failover · timeouts · retries]
+    N --> B1[Ollama] & B2[MLX] & B3[TinyChat / TinyLLM] & B4[OpenWebUI] & B5[Nova Gateway] & B6[OpenRouter / OpenAI]
+    N -->|reply| V{Validator}
+    V -->|valid / clamped| OUT[AI result + source label]
+    V -->|rejected| RETRY[ask once more with the complaint]
+    RETRY -->|rejected again| FB
+    N -->|all backends down| FB
+```
+
+- **On/off:** Settings > AI > "Use AI". Off means nothing leaves the Mac and every feature uses its built-in rules.
+- **Backends:** Auto (Ollama → MLX → TinyChat → TinyLLM → OpenWebUI → Nova Gateway → OpenRouter → OpenAI), or pick one.
+  Model picker and editable URLs per backend; "Test connection" in Settings.
+- **Keys:** OpenRouter / OpenAI / OpenWebUI keys are stored only in the macOS Keychain under
+  `com.jkoch.dotsync.<backend>` (account `apiKey`), are shown as "stored", never as text, and are only sent over https.
+- **Status indicator:** a dot + backend/model label in the AI dashboard, the Ask AI header and the sidebar; click it to
+  re-check.
+- **Failover:** Auto mode tries each reachable backend with timeouts and retries (transient 5xx / timeouts).
+- **Validation:** every reply must follow the feature's format (`FINDING|…`, `RECOMMENDATION:`, `SCORE:`, …). Values are
+  clamped (confidence 0–1, score 0–100, severities/impact to known levels, line numbers to the file, priorities only for
+  files that were asked about). A reply that fails is retried once, then the built-in result is used.
+- **Upgrade from 1.2:** the old settings (backend, Ollama model, on/off) are imported once; an OpenAI key from the old
+  `com.jordankoch.DotSync` Keychain service or from UserDefaults moves to `com.jkoch.dotsync.openai`, and old
+  Google/Azure/AWS/IBM AI secrets are deleted. The Google Cloud / Azure / AWS / IBM Watson AI backends were removed.
+  (This is about AI backends only; Azure Blob, GCS, S3 and Google Drive remain fully supported as *storage*.)
+
+---
+
 ## Installation
 
-**Dot Sync is distributed as a DMG installer. It is not available on the Mac App Store.**
+**Dot Sync is distributed as a DMG. It is not on the Mac App Store.**
 
-### Option 1: DMG Installer (Recommended)
-
-1. Download the latest DMG from [Releases](https://github.com/kochj23/DotSync/releases)
-2. Open the DMG and drag `Dot Sync.app` to the Applications folder
-3. Launch from Applications or Spotlight
-
-### Option 2: Build from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/kochj23/DotSync.git
-cd DotSync
-
-# Open in Xcode
-open "Dot Sync.xcodeproj"
-
-# Build and run (Cmd+R) or build for release:
-xcodebuild -project "Dot Sync.xcodeproj" \
-  -scheme "Dot Sync" \
-  -configuration Release \
-  -archivePath "build/DotSync.xcarchive" \
-  archive
-```
+1. Download `DotSync-v1.3.0-build7.dmg` from [Releases](https://github.com/kochj23/DotSync/releases) (or the local
+   binaries share).
+2. Open it and drag **Dot Sync** onto **Applications**.
+3. Launch from Applications or Spotlight. The build is ad hoc signed for local use: the first time, right-click >
+   Open.
 
 ### Requirements
 
 - macOS 13.0 (Ventura) or later
-- Xcode 15.0+ (building from source only)
-- A cloud storage account (AWS, Azure, GCP, iCloud, NAS, OneDrive, or Google Drive)
+- Optional, for AI: a local [Ollama](https://ollama.com) (or MLX / TinyChat / TinyLLM / OpenWebUI / Nova Gateway), or an
+  OpenRouter / OpenAI key
+- A storage backend (S3, Azure, GCS, iCloud Drive, NAS, OneDrive or Google Drive)
 
-### Dependencies
+---
 
-None. Dot Sync uses only built-in macOS frameworks:
+## Building from Source
 
-- **SwiftUI** -- User interface
-- **Foundation** -- Core functionality
-- **CryptoKit** -- Checksums and encryption
-- **Combine** -- Reactive data flow
-- **Network** -- Nova API server (NWListener)
-- **WidgetKit** -- macOS widget extension
-- **SystemConfiguration** -- Machine identification
+```bash
+git clone git@github.com:kochj23/DotSync.git
+cd DotSync
+open "Dot Sync.xcodeproj"     # Xcode resolves NovaAIKit (Swift Package) automatically
+
+# Command line (Release, unsigned, then ad hoc sign):
+xcodebuild -project "Dot Sync.xcodeproj" -scheme "Dot Sync" -configuration Release \
+  -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+codesign --force --deep -s - "build/Build/Products/Release/Dot Sync.app"
+```
+
+Dependencies: [NovaAIKit](https://github.com/kochj23/NovaAIKit) (Swift Package, `from: 1.0.0`). Everything else is
+system frameworks (SwiftUI, Foundation, CryptoKit, Combine, Network, WidgetKit, SystemConfiguration, Security).
+
+Version: `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in the project (both Info.plists read them).
 
 ---
 
@@ -504,7 +474,7 @@ When safe files contain isolated credential fragments (like a git credential hel
 - **Cloud data:** Optional AES-256 encryption at rest
 - **Backups:** .backup file created before any overwrite
 - **Audit log:** All operations logged with timestamps
-- **No telemetry:** Zero data sent to external services
+- **No telemetry:** nothing is sent anywhere except your chosen storage backend and, only if AI is on, your chosen AI backend (local by default)
 
 ### Command Injection Prevention
 
@@ -549,6 +519,38 @@ The API server starts automatically when the app launches.
 
 ---
 
+## Testing
+
+```bash
+xcodebuild test -project "Dot Sync.xcodeproj" -scheme "Dot Sync" -destination 'platform=macOS'
+```
+
+220 tests, all passing. The AI tests (`Dot Sync Tests/AIKitAdoptionTests.swift`) never touch the network or the real
+Keychain: they use an in-memory settings store, an in-memory key store and a stub `URLProtocol`.
+
+| Test class | Tests | Coverage |
+|---|---|---|
+| ConfigFileTests | 20 | Models, Codable, Hashable, formatting |
+| SecurityScannerTests | 23 | Credential detection, sanitization, safe file handling |
+| ThreeWayMergeTests | 19 | Merge logic, conflict markers, real-world configs |
+| FileDiscoveryServiceTests | 17 | Categorization, priority, filtering |
+| SyncProfileTests | 16 | Profile matching, include/exclude, Codable |
+| SyncOperationTests | 12 | Direction, status, merge attempts |
+| CloudProviderTests | 20 | Provider config, credentials, storage paths |
+| SyncHookTests | 20 | Hook matching, execution, command injection prevention |
+| MachineInfoTests | 11 | Roles, machine ID, metadata |
+| SyncProgressTests | 18 | Progress calc, toast messages, failure tracking |
+| FilesystemIntegrationTests | 14 | Checksum, backup, symlinks, path traversal, concurrency |
+| AIKitSecurityTests | 7 | Keychain service names, legacy key migration, plaintext key removal, no key over http, no legacy AI code |
+| AIKitPerformanceTests | 3 | Validator speed, instant fallback when off, no hang offline |
+| AIKitRetryTests | 3 | Rejected reply retried once, twice-rejected → built-in, 503 retried |
+| AIKitUnitTests | 6 | Every validator: rejects nonsense, clamps ranges |
+| AIKitIntegrationTests | 4 | AI results flow through, semantic + keyword search merge, legacy settings import |
+| AIKitFunctionalTests | 3 | Every feature works with AI off and with every backend down |
+| AIKitFrameTests | 4 | Settings view, status indicator states, toggle state |
+
+---
+
 ## Troubleshooting
 
 **Files not discovered:**
@@ -571,68 +573,36 @@ Choose "Keep Local" or "Use Remote" definitively. Avoid repeatedly skipping conf
 
 ---
 
-## Testing
-
-### Test Suite (190 tests)
-
-Dot Sync includes a comprehensive XCTest suite covering unit, functional, security, and integration tests.
-
-**Run tests:**
-```bash
-xcodebuild test -project "Dot Sync.xcodeproj" -scheme "Dot Sync" \
-  -destination "platform=macOS,arch=arm64"
-```
-
-| Test Class | Tests | Coverage |
-|---|---|---|
-| ConfigFileTests | 20 | Models, Codable, Hashable, formatting |
-| SecurityScannerTests | 23 | Credential detection, sanitization, safe file handling |
-| ThreeWayMergeTests | 19 | Merge logic, conflict markers, real-world configs |
-| FileDiscoveryServiceTests | 17 | Categorization, priority, filtering |
-| SyncProfileTests | 16 | Profile matching, include/exclude, Codable |
-| SyncOperationTests | 12 | Direction, status, merge attempts |
-| CloudProviderTests | 20 | Provider config, credentials, storage paths |
-| SyncHookTests | 20 | Hook matching, execution, command injection prevention |
-| MachineInfoTests | 11 | Roles, machine ID, metadata |
-| SyncProgressTests | 18 | Progress calc, toast messages, failure tracking |
-| FilesystemIntegrationTests | 14 | Checksum, backup, symlinks, path traversal, concurrency |
-
-**Security tests verify:**
-- AWS key, Stripe key, JWT, Bearer token, SSH key, password detection
-- Command injection prevention via environment variable isolation
-- Path traversal blocked by URL standardization
-- Credential truncation in scan reports (no full secrets in logs)
-- Symlink safety and exclude pattern enforcement
+**AI says "Built-in" everywhere:**
+AI is off, or no backend answered. Open Settings > AI, turn on "Use AI", and use "Test connection". With Ollama, make
+sure `ollama serve` is running and a model is pulled. Click the status dot to re-check.
 
 ---
 
 ## Version History
 
-### v1.2.0 (March 2026) -- Current
+See [CHANGELOG.md](CHANGELOG.md) for details.
+
+### v1.3.0 (November 2026) -- Current
+
+- AI migrated to NovaAIKit 1.0.0: AI on/off, Auto failover across 8 backends, model picker, editable URLs, Keychain-only
+  keys (https only), status indicator, validated replies with built-in fallbacks for every feature
+- Removed the app's own AI client code and the Google/Azure/AWS/IBM AI backends
+- Legacy AI settings and keys migrated once; obsolete secrets deleted
+- 30 new AI tests (220 total); zero build warnings
+
+### v1.2.0 (March 2026)
 
 - Widget Extension target connected and building
 - FileWatcher rewritten with DispatchSource (replaced FSEvents)
-- All file watching crashes eliminated
-- Memory-safe file descriptor cleanup
-- 5-second debounce on change events
-- Lower CPU usage with event-driven monitoring
 
 ### v1.1.0 (December 2025)
 
-- Terminal.app and iTerm2 profile sync
-- Azure Blob Storage support
-- Google Cloud Storage support
-- iCloud Drive integration
-- Improved file browser with icons and categories
+- Terminal.app and iTerm2 profile sync; Azure Blob, Google Cloud Storage, iCloud Drive
 
 ### v1.0.0 (December 2025) -- Initial Release
 
-- Config file discovery and categorization
-- Security scanning for credentials
-- AWS S3 cloud storage support
-- Core sync engine with conflict detection
-- SwiftUI native interface
-- Priority-based file ranking
+- Config discovery, security scanning, AWS S3, sync engine with conflict detection
 
 ---
 

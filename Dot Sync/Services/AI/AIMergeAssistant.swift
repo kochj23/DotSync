@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import NovaAIKit
 
 /// AI-powered merge assistant for resolving configuration conflicts
 @MainActor
@@ -16,8 +17,14 @@ class AIMergeAssistant: ObservableObject {
 
     @Published var isProcessing = false
     @Published var lastMergeSuggestion: MergeSuggestion?
+    /// Where the last result came from ("AI · Ollama (model)" / "Built-in").
+    @Published var lastSource: NovaAISource?
 
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     // MARK: - Data Models
 
@@ -92,10 +99,6 @@ class AIMergeAssistant: ObservableObject {
         isProcessing = true
         defer { isProcessing = false }
 
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return createBasicSuggestion(localContent: localContent, remoteContent: remoteContent, filename: filename)
-        }
-
         let fileType = detectFileType(filename: filename)
         let ancestorSection = ancestorContent != nil ?
             "COMMON ANCESTOR (last synced version):\n\(String(ancestorContent!.prefix(1500)))" :
@@ -128,23 +131,21 @@ class AIMergeAssistant: ObservableObject {
         MERGED_CONTENT: <if recommending merge, provide the merged content, otherwise write "N/A">
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are an expert DevOps engineer who understands configuration files deeply. When merging, preserve both sets of changes when possible. Prioritize functional correctness over formatting.",
-                temperature: 0.2,
-                maxTokens: 4096
-            )
-
-            let suggestion = parseMergeSuggestion(response, filename: filename)
-            lastMergeSuggestion = suggestion
-            return suggestion
-        } catch {
-            return createBasicSuggestion(localContent: localContent, remoteContent: remoteContent, filename: filename)
-        }
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are an expert DevOps engineer who understands configuration files deeply. When merging, preserve both sets of changes when possible. Prioritize functional correctness over formatting.",
+            temperature: 0.2,
+            maxTokens: 4096,
+            parse: { try Self.validateMergeSuggestion($0, filename: filename) },
+            fallback: { Self.createBasicSuggestion(localContent: localContent, remoteContent: remoteContent, filename: filename) }
+        )
+        lastSource = result.source
+        lastMergeSuggestion = result.value
+        return result.value
     }
 
-    private func createBasicSuggestion(localContent: String, remoteContent: String, filename: String) -> MergeSuggestion {
+    nonisolated static func createBasicSuggestion(localContent: String, remoteContent: String, filename: String) -> MergeSuggestion {
         // Basic heuristic: newer is usually better, but flag for manual review
         let localLines = localContent.components(separatedBy: .newlines).count
         let remoteLines = remoteContent.components(separatedBy: .newlines).count
@@ -171,10 +172,6 @@ class AIMergeAssistant: ObservableObject {
         defer { isProcessing = false }
 
         let fileType = detectFileType(filename: filename)
-
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return performBasicMerge(localContent: localContent, remoteContent: remoteContent, filename: filename)
-        }
 
         let prompt = """
         Perform a semantic merge of this \(fileType) configuration file.
@@ -206,21 +203,20 @@ class AIMergeAssistant: ObservableObject {
         MERGED_CONTENT_END
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a configuration file expert. Merge files semantically, understanding their structure. Output clean, working configuration files.",
-                temperature: 0.1,
-                maxTokens: 8192
-            )
-
-            return parseSemanticMergeResult(response, filename: filename)
-        } catch {
-            return performBasicMerge(localContent: localContent, remoteContent: remoteContent, filename: filename)
-        }
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a configuration file expert. Merge files semantically, understanding their structure. Output clean, working configuration files.",
+            temperature: 0.1,
+            maxTokens: 8192,
+            parse: { try Self.validateSemanticMerge($0, filename: filename) },
+            fallback: { Self.performBasicMerge(localContent: localContent, remoteContent: remoteContent, filename: filename) }
+        )
+        lastSource = result.source
+        return result.value
     }
 
-    private func performBasicMerge(localContent: String, remoteContent: String, filename: String) -> SemanticMergeResult {
+    nonisolated static func performBasicMerge(localContent: String, remoteContent: String, filename: String) -> SemanticMergeResult {
         // Use the existing ThreeWayMerge for basic merging
         let mergeResult = ThreeWayMerge.merge(
             ancestor: localContent, // Use local as ancestor for basic 2-way merge
@@ -257,10 +253,6 @@ class AIMergeAssistant: ObservableObject {
 
         let fileType = detectFileType(filename: filename)
 
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return createBasicExplanation(originalContent: originalContent, newContent: newContent, filename: filename)
-        }
-
         let prompt = """
         Explain the changes between these two versions of a \(fileType) configuration file in plain English.
 
@@ -286,21 +278,20 @@ class AIMergeAssistant: ObservableObject {
         ...
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a technical writer explaining configuration changes to developers. Be clear and concise. Focus on what matters.",
-                temperature: 0.3,
-                maxTokens: 2048
-            )
-
-            return parseChangeExplanation(response, filename: filename)
-        } catch {
-            return createBasicExplanation(originalContent: originalContent, newContent: newContent, filename: filename)
-        }
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a technical writer explaining configuration changes to developers. Be clear and concise. Focus on what matters.",
+            temperature: 0.3,
+            maxTokens: 2048,
+            parse: { try Self.validateChangeExplanation($0, filename: filename) },
+            fallback: { Self.createBasicExplanation(originalContent: originalContent, newContent: newContent, filename: filename) }
+        )
+        lastSource = result.source
+        return result.value
     }
 
-    private func createBasicExplanation(originalContent: String, newContent: String, filename: String) -> ChangeExplanation {
+    nonisolated static func createBasicExplanation(originalContent: String, newContent: String, filename: String) -> ChangeExplanation {
         let originalLines = Set(originalContent.components(separatedBy: .newlines))
         let newLines = Set(newContent.components(separatedBy: .newlines))
 
@@ -343,6 +334,40 @@ class AIMergeAssistant: ObservableObject {
         )
     }
 
+    // MARK: - Validators (reject replies that ignore the format; clamp values to their legal range)
+
+    /// Rejects a reply without RECOMMENDATION:; clamps confidence to 0...1; a "merge" recommendation without merged
+    /// content is downgraded to manual review.
+    nonisolated static func validateMergeSuggestion(_ response: String, filename: String) throws -> MergeSuggestion {
+        guard response.components(separatedBy: .newlines).contains(where: { $0.uppercased().hasPrefix("RECOMMENDATION:") }) else {
+            throw NovaAIValidationError("expected a RECOMMENDATION: line")
+        }
+        let s = parseMergeSuggestion(response, filename: filename)
+        let confidence = s.confidence.isFinite ? min(max(s.confidence, 0), 1) : 0.5
+        let recommendation = (s.recommendation == .merge && (s.mergedContent ?? "").isEmpty) ? .manualReview : s.recommendation
+        return MergeSuggestion(filename: s.filename, recommendation: recommendation, reasoning: s.reasoning,
+                               mergedContent: s.mergedContent, confidence: confidence, warnings: s.warnings)
+    }
+
+    /// Rejects a reply without SUCCESS: or without merged content between the markers; clamps AUTO_RESOLVED to >= 0.
+    nonisolated static func validateSemanticMerge(_ response: String, filename: String) throws -> SemanticMergeResult {
+        guard response.uppercased().contains("SUCCESS:") else { throw NovaAIValidationError("expected a SUCCESS: line") }
+        let r = parseSemanticMergeResult(response, filename: filename)
+        guard !r.mergedContent.isEmpty else {
+            throw NovaAIValidationError("expected the merged file between MERGED_CONTENT_START and MERGED_CONTENT_END")
+        }
+        return SemanticMergeResult(filename: r.filename, success: r.success, mergedContent: r.mergedContent,
+                                   conflicts: r.conflicts, autoResolvedCount: max(0, r.autoResolvedCount))
+    }
+
+    /// Rejects a reply without SUMMARY:.
+    nonisolated static func validateChangeExplanation(_ response: String, filename: String) throws -> ChangeExplanation {
+        guard response.components(separatedBy: .newlines).contains(where: { $0.uppercased().hasPrefix("SUMMARY:") }) else {
+            throw NovaAIValidationError("expected a SUMMARY: line")
+        }
+        return parseChangeExplanation(response, filename: filename)
+    }
+
     // MARK: - Parsing Helpers
 
     private func detectFileType(filename: String) -> String {
@@ -364,7 +389,7 @@ class AIMergeAssistant: ObservableObject {
         return "Configuration"
     }
 
-    private func parseMergeSuggestion(_ response: String, filename: String) -> MergeSuggestion {
+    nonisolated static func parseMergeSuggestion(_ response: String, filename: String) -> MergeSuggestion {
         var recommendation: MergeSuggestion.MergeRecommendation = .manualReview
         var confidence: Double = 0.5
         var reasoning = ""
@@ -398,6 +423,10 @@ class AIMergeAssistant: ObservableObject {
            let endRange = response.range(of: "MERGED_CONTENT_END") {
             let contentStart = response.index(after: startRange.upperBound)
             mergedContent = String(response[contentStart..<endRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        } else if let field = response.range(of: "MERGED_CONTENT:", options: .caseInsensitive) {
+            // The prompt asks for "MERGED_CONTENT: <content or N/A>": everything after the label.
+            let value = String(response[field.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !value.isEmpty && value.uppercased() != "N/A" { mergedContent = value }
         }
 
         return MergeSuggestion(
@@ -410,7 +439,7 @@ class AIMergeAssistant: ObservableObject {
         )
     }
 
-    private func parseSemanticMergeResult(_ response: String, filename: String) -> SemanticMergeResult {
+    nonisolated static func parseSemanticMergeResult(_ response: String, filename: String) -> SemanticMergeResult {
         var success = false
         var autoResolved = 0
         var conflicts: [SemanticMergeResult.SemanticConflict] = []
@@ -451,7 +480,7 @@ class AIMergeAssistant: ObservableObject {
         )
     }
 
-    private func parseChangeExplanation(_ response: String, filename: String) -> ChangeExplanation {
+    nonisolated static func parseChangeExplanation(_ response: String, filename: String) -> ChangeExplanation {
         var summary = ""
         var impact: ChangeExplanation.ImpactLevel = .low
         var changes: [ChangeExplanation.ChangeDetail] = []

@@ -6,12 +6,13 @@
 //
 
 import SwiftUI
+import NovaAIKit
 
 struct ContentView: View {
     @StateObject private var discoveryService = FileDiscoveryService.shared
     @StateObject private var syncEngine = SyncEngine.shared
     @StateObject private var profileManager = ProfileManager.shared
-    @StateObject private var aiManager = AIBackendManager.shared
+    @ObservedObject private var ai = AppAI.shared
 
     @State private var selectedCategory: ConfigCategory? = nil
     @State private var selectedFiles: Set<UUID> = []
@@ -105,11 +106,7 @@ struct ContentView: View {
                                 .foregroundColor(.purple)
                             Text("Ask AI")
                             Spacer()
-                            if aiManager.activeBackend != nil {
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 8, height: 8)
-                            }
+                            NovaAIStatusIndicator(ai: ai, showsLabel: false)
                         }
                     }
                     .buttonStyle(.plain)
@@ -191,7 +188,7 @@ struct ContentView: View {
                 ProgressView("Scanning local configuration files...")
             } else if syncEngine.isLoadingRemoteFiles {
                 ProgressView("Loading files from cloud storage...")
-            } else if let category = selectedCategory {
+            } else if selectedCategory != nil {
                 FileListView(
                     files: filteredFiles,
                     selectedFiles: $selectedFiles,

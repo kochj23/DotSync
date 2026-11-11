@@ -110,8 +110,9 @@ class FileDiscoveryService: ObservableObject {
             return lhs.category.rawValue < rhs.category.rawValue
         }
 
+        let sortedFiles = foundFiles
         await MainActor.run {
-            self.discoveredFiles = foundFiles
+            self.discoveredFiles = sortedFiles
             self.isScanning = false
         }
     }

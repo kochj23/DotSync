@@ -8,9 +8,10 @@
 //
 
 import SwiftUI
+import NovaAIKit
 
 struct AskAIView: View {
-    @ObservedObject var aiManager = AIBackendManager.shared
+    @ObservedObject var ai = AppAI.shared
     @ObservedObject var configAssistant = AIConfigAssistant.shared
     @ObservedObject var securityAnalyzer = AISecurityAnalyzer.shared
     @ObservedObject var mergeAssistant = AIMergeAssistant.shared
@@ -84,14 +85,9 @@ struct AskAIView: View {
                     .fontWeight(.semibold)
 
                 HStack(spacing: 8) {
-                    // AI Status
-                    Circle()
-                        .fill(aiManager.activeBackend != nil ? Color.green : Color.orange)
-                        .frame(width: 8, height: 8)
-
-                    Text(aiManager.activeBackend?.rawValue ?? "AI Offline")
+                    // AI Status (dot + backend/model; click re-checks)
+                    NovaAIStatusIndicator(ai: ai)
                         .font(.caption)
-                        .foregroundColor(.secondary)
 
                     Text("•")
                         .foregroundColor(.secondary)
@@ -214,6 +210,12 @@ struct AskAIView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(message.content)
                         .textSelection(.enabled)
+
+                    if let label = message.sourceLabel {
+                        Text(label)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
 
                     // Show sources if available
                     if !message.sources.isEmpty {
@@ -575,14 +577,6 @@ struct AskAIView: View {
     }
 
     private func generateAIResponse(_ q: String) async -> ChatMessage {
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return ChatMessage(
-                content: "I couldn't find specific information for your question. Please try a more specific search term, or ensure an AI backend is connected for more advanced queries.",
-                isUser: false,
-                timestamp: Date()
-            )
-        }
-
         // Build context from configs
         var context = "Available configuration files:\n"
         for config in configs.prefix(10) {
@@ -599,26 +593,22 @@ struct AskAIView: View {
         Provide a helpful, concise answer based on the configuration content shown.
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a helpful assistant answering questions about developer configuration files. Be concise and specific. If you can't answer from the given context, say so.",
-                temperature: 0.3,
-                maxTokens: 1024
-            )
-
-            return ChatMessage(
-                content: response,
-                isUser: false,
-                timestamp: Date()
-            )
-        } catch {
-            return ChatMessage(
-                content: "I encountered an error processing your question. Please try again.",
-                isUser: false,
-                timestamp: Date()
-            )
-        }
+        let fallbackText = ai.isEnabled
+            ? "I couldn't find specific information for your question, and no AI backend answered. Try a more specific search term, or check Settings > AI."
+            : "I couldn't find specific information for your question. AI is turned off (Settings > AI), so only keyword search is available."
+        let result = await ai.text(
+            NovaAIRequest(prompt: prompt,
+                          system: "You are a helpful assistant answering questions about developer configuration files. Be concise and specific. If you can't answer from the given context, say so.",
+                          temperature: 0.3, maxTokens: 1024),
+            validate: { reply in NovaAIText.plain(try NovaAI.nonEmpty(reply), max: 4000) },
+            fallback: { fallbackText }
+        )
+        return ChatMessage(
+            content: result.value,
+            isUser: false,
+            timestamp: Date(),
+            sourceLabel: result.source.label
+        )
     }
 
     // MARK: - Quick Action Handlers
@@ -675,6 +665,8 @@ struct ChatMessage: Identifiable {
     let timestamp: Date
     var sources: [Source] = []
     var suggestedAction: SuggestedAction?
+    /// For AI answers: where the text came from ("AI · Ollama (model)" / "Built-in").
+    var sourceLabel: String?
 
     struct Source: Identifiable {
         let id = UUID()

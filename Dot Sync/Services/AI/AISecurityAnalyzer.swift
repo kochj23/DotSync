@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import NovaAIKit
 
 /// AI-powered security analyzer for configuration files
 @MainActor
@@ -16,8 +17,14 @@ class AISecurityAnalyzer: ObservableObject {
 
     @Published var isAnalyzing = false
     @Published var lastAnalysisResults: [SecurityAnalysisResult] = []
+    /// Where the last result came from ("AI · Ollama (model)" / "Built-in").
+    @Published var lastSource: NovaAISource?
 
-    private let aiManager = AIBackendManager.shared
+    private let ai: NovaAI
+
+    init(ai: NovaAI? = nil) {
+        self.ai = ai ?? AppAI.shared
+    }
 
     // MARK: - Analysis Results
 
@@ -77,10 +84,6 @@ class AISecurityAnalyzer: ObservableObject {
 
     /// AI-powered credential detection that finds obfuscated secrets regex misses
     func detectCredentials(in content: String, filename: String) async -> [SecurityFinding] {
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return detectCredentialsWithRegex(in: content, filename: filename)
-        }
-
         isAnalyzing = true
         defer { isAnalyzing = false }
 
@@ -106,23 +109,22 @@ class AISecurityAnalyzer: ObservableObject {
         If no issues found, respond with: NO_FINDINGS
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a senior security engineer specializing in credential detection and secrets management. Be thorough but avoid false positives. Only report actual security concerns.",
-                temperature: 0.2,
-                maxTokens: 2048
-            )
-
-            return parseSecurityFindings(response)
-        } catch {
-            print("[AISecurityAnalyzer] AI analysis failed: \(error.localizedDescription)")
-            return detectCredentialsWithRegex(in: content, filename: filename)
-        }
+        let lineCount = content.components(separatedBy: .newlines).count
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a senior security engineer specializing in credential detection and secrets management. Be thorough but avoid false positives. Only report actual security concerns.",
+            temperature: 0.2,
+            maxTokens: 2048,
+            parse: { try Self.validateFindings($0, lineCount: lineCount) },
+            fallback: { Self.detectCredentialsWithRegex(in: content, filename: filename) }
+        )
+        lastSource = result.source
+        return result.value
     }
 
     /// Fallback regex-based detection when AI is unavailable
-    private func detectCredentialsWithRegex(in content: String, filename: String) -> [SecurityFinding] {
+    nonisolated static func detectCredentialsWithRegex(in content: String, filename: String) -> [SecurityFinding] {
         var findings: [SecurityFinding] = []
         let lines = content.components(separatedBy: .newlines)
 
@@ -162,10 +164,6 @@ class AISecurityAnalyzer: ObservableObject {
 
     /// Comprehensive security audit of configuration files
     func auditConfigSecurity(configs: [ConfigFile]) async -> [SecurityAnalysisResult] {
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return []
-        }
-
         isAnalyzing = true
         defer { isAnalyzing = false }
 
@@ -216,18 +214,18 @@ class AISecurityAnalyzer: ObservableObject {
         If no issues found, respond with: NO_FINDINGS
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a security auditor reviewing configuration files. Focus on actionable security issues. Be specific about what's wrong and how to fix it.",
-                temperature: 0.2,
-                maxTokens: 2048
-            )
-
-            return parseSecurityFindings(response)
-        } catch {
-            return []
-        }
+        let lineCount = content.components(separatedBy: .newlines).count
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a security auditor reviewing configuration files. Focus on actionable security issues. Be specific about what's wrong and how to fix it.",
+            temperature: 0.2,
+            maxTokens: 2048,
+            parse: { try Self.validateFindings($0, lineCount: lineCount) },
+            fallback: { Self.detectCredentialsWithRegex(in: content, filename: filename) }
+        )
+        lastSource = result.source
+        return result.value
     }
 
     // MARK: - Anomaly Detection
@@ -243,10 +241,6 @@ class AISecurityAnalyzer: ObservableObject {
 
     /// Detect anomalous changes in configuration files
     func detectAnomalies(originalContent: String, newContent: String, filename: String) async -> AnomalyResult? {
-        guard aiManager.aiEnabled, aiManager.activeBackend != nil else {
-            return detectAnomaliesBasic(originalContent: originalContent, newContent: newContent, filename: filename)
-        }
-
         // Skip if contents are identical
         guard originalContent != newContent else { return nil }
 
@@ -275,22 +269,21 @@ class AISecurityAnalyzer: ObservableObject {
         RECOMMENDATION: <what the user should do>
         """
 
-        do {
-            let response = try await aiManager.generate(
-                prompt: prompt,
-                systemPrompt: "You are a configuration change analyst. Identify potentially problematic changes while avoiding false alarms for normal modifications.",
-                temperature: 0.2,
-                maxTokens: 1024
-            )
-
-            return parseAnomalyResult(response, filename: filename)
-        } catch {
-            return detectAnomaliesBasic(originalContent: originalContent, newContent: newContent, filename: filename)
-        }
+        let result = await AppAI.run(
+            ai,
+            prompt: prompt,
+            system: "You are a configuration change analyst. Identify potentially problematic changes while avoiding false alarms for normal modifications.",
+            temperature: 0.2,
+            maxTokens: 1024,
+            parse: { try Self.validateAnomaly($0, filename: filename) },
+            fallback: { Self.detectAnomaliesBasic(originalContent: originalContent, newContent: newContent, filename: filename) }
+        )
+        lastSource = result.source
+        return result.value
     }
 
     /// Basic anomaly detection without AI
-    private func detectAnomaliesBasic(originalContent: String, newContent: String, filename: String) -> AnomalyResult? {
+    nonisolated static func detectAnomaliesBasic(originalContent: String, newContent: String, filename: String) -> AnomalyResult? {
         let originalLines = originalContent.components(separatedBy: .newlines).count
         let newLines = newContent.components(separatedBy: .newlines).count
         let lineDiff = abs(newLines - originalLines)
@@ -310,21 +303,51 @@ class AISecurityAnalyzer: ObservableObject {
         return nil
     }
 
+    // MARK: - Validators (reject replies that ignore the format; clamp line numbers)
+
+    /// Findings from an AI reply. Rejects a reply with neither NO_FINDINGS nor a FINDING line; drops line numbers
+    /// outside the file.
+    nonisolated static func validateFindings(_ response: String, lineCount: Int) throws -> [SecurityFinding] {
+        let hasFindings = response.components(separatedBy: .newlines).contains { $0.trimmingCharacters(in: .whitespaces).hasPrefix("FINDING|") }
+        guard hasFindings || response.contains("NO_FINDINGS") else {
+            throw NovaAIValidationError("expected FINDING|… lines or NO_FINDINGS")
+        }
+        return parseSecurityFindings(response).map { f in
+            guard let line = f.lineNumber, line > lineCount else { return f }
+            return SecurityFinding(type: f.type, description: f.description, lineNumber: nil,
+                                   recommendation: f.recommendation, severity: f.severity)
+        }
+    }
+
+    /// Anomaly result from an AI reply. Rejects a reply without SIGNIFICANT and CHANGE_SUMMARY; clamps the risk
+    /// to none/low/medium/high/critical.
+    nonisolated static func validateAnomaly(_ response: String, filename: String) throws -> AnomalyResult? {
+        guard response.uppercased().contains("SIGNIFICANT:"), let r = parseAnomalyResult(response, filename: filename) else {
+            throw NovaAIValidationError("expected SIGNIFICANT: and CHANGE_SUMMARY: lines")
+        }
+        let allowed = ["none", "low", "medium", "high", "critical"]
+        let risk = allowed.first { r.riskAssessment.lowercased().hasPrefix($0) } ?? "medium"
+        return AnomalyResult(filename: r.filename, changeDescription: String(r.changeDescription.prefix(500)),
+                             riskAssessment: risk.capitalized, isSignificant: r.isSignificant,
+                             recommendation: String(r.recommendation.prefix(500)))
+    }
+
     // MARK: - Parsing Helpers
 
-    private func parseSecurityFindings(_ response: String) -> [SecurityFinding] {
+    nonisolated static func parseSecurityFindings(_ response: String) -> [SecurityFinding] {
         if response.contains("NO_FINDINGS") { return [] }
 
         var findings: [SecurityFinding] = []
         let lines = response.components(separatedBy: .newlines)
 
-        for line in lines {
+        for rawLine in lines {
+            let line = rawLine.trimmingCharacters(in: .whitespaces)
             if line.hasPrefix("FINDING|") {
                 let parts = line.components(separatedBy: "|")
                 if parts.count >= 6 {
                     let typeStr = parts[1].lowercased()
                     let severityStr = parts[2].lowercased()
-                    let lineNum = Int(parts[3]) ?? 0
+                    let lineNum = Int(parts[3].trimmingCharacters(in: .whitespaces)) ?? 0
                     let description = parts[4]
                     let recommendation = parts[5]
 
@@ -363,7 +386,7 @@ class AISecurityAnalyzer: ObservableObject {
         return findings
     }
 
-    private func parseAnomalyResult(_ response: String, filename: String) -> AnomalyResult? {
+    nonisolated static func parseAnomalyResult(_ response: String, filename: String) -> AnomalyResult? {
         var isSignificant = false
         var changeSummary = ""
         var riskAssessment = "Low"

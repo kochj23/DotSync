@@ -23,8 +23,6 @@ class GoogleDriveProvider: BaseCloudProvider, CloudStorageProtocol {
         }
 
         let token = try await getAccessToken()
-        let storagePath = storagePath(for: file)
-
         // Create or update file using multipart upload
         let boundary = "dotSyncBoundary"
         let metadata = """

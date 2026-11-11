@@ -7,9 +7,10 @@
 //
 
 import SwiftUI
+import NovaAIKit
 
 struct AIFeaturesDashboard: View {
-    @ObservedObject var aiManager = AIBackendManager.shared
+    @ObservedObject var ai = AppAI.shared
     @ObservedObject var securityAnalyzer = AISecurityAnalyzer.shared
     @ObservedObject var mergeAssistant = AIMergeAssistant.shared
     @ObservedObject var configInsights = AIConfigInsights.shared
@@ -70,23 +71,15 @@ struct AIFeaturesDashboard: View {
                 }
 
                 HStack(spacing: 12) {
-                    // Backend status
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(aiManager.activeBackend != nil ? Color.green : Color.red)
-                            .frame(width: 8, height: 8)
-                        Text(aiManager.activeBackend?.rawValue ?? "No AI Backend")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    // Backend status (dot + backend/model; click re-checks). AI off/offline → built-in rules.
+                    NovaAIStatusIndicator(ai: ai)
+                        .font(.caption)
 
-                    if aiManager.activeBackend != nil {
-                        Text("•")
-                            .foregroundColor(.secondary)
-                        Text("\(configs.count) configs")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    Text("•")
+                        .foregroundColor(.secondary)
+                    Text("\(configs.count) configs")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
 
                     if isRunningAnalysis {
                         Text("•")
@@ -105,18 +98,12 @@ struct AIFeaturesDashboard: View {
             Spacer()
 
             // Quick actions
-            if aiManager.activeBackend != nil {
-                Button(action: runFullAnalysis) {
-                    Label("Full Analysis", systemImage: "wand.and.stars")
-                }
-                .buttonStyle(.bordered)
-                .disabled(isRunningAnalysis)
-            } else {
-                Button(action: { Task { await aiManager.checkBackendAvailability() } }) {
-                    Label("Connect AI", systemImage: "arrow.clockwise")
-                }
-                .buttonStyle(.borderedProminent)
+            Button(action: runFullAnalysis) {
+                Label(ai.isEnabled ? "Full Analysis" : "Full Analysis (built-in)", systemImage: "wand.and.stars")
             }
+            .buttonStyle(.bordered)
+            .disabled(isRunningAnalysis)
+            .help(ai.isEnabled ? "Runs every analysis; uses built-in rules for anything AI can't answer." : AppAI.footer)
         }
         .padding()
         .background(Color(nsColor: .controlBackgroundColor))
